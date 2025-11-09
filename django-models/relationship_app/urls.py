@@ -15,8 +15,14 @@ urlpatterns = [
     path('member/', views.member_view, name='member_view'),
     path('manage-roles/', views.manage_roles, name='manage_roles'),
     
-    # Existing URLs
+    # Book Management URLs with Permissions
     path('books/', views.book_list, name='book_list'),
+    path('books/manage/', views.manage_books, name='manage_books'),
+    path('books/add/', views.add_book, name='add_book'),
+    path('books/<int:pk>/edit/', views.edit_book, name='edit_book'),
+    path('books/<int:pk>/delete/', views.delete_book, name='delete_book'),
+    
+    # Existing URLs
     path('libraries/', views.LibraryListView.as_view(), name='library_list'),
     path('library/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),
 ]
