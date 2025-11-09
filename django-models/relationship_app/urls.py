@@ -9,6 +9,12 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     
+    # Role-Based URLs
+    path('admin/', views.admin_view, name='admin_view'),
+    path('librarian/', views.librarian_view, name='librarian_view'),
+    path('member/', views.member_view, name='member_view'),
+    path('manage-roles/', views.manage_roles, name='manage_roles'),
+    
     # Existing URLs
     path('books/', views.book_list, name='book_list'),
     path('libraries/', views.LibraryListView.as_view(), name='library_list'),

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage User Roles</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .auth-links { margin: 20px 0; padding: 10px; background: #f8f9fa; }
+        .auth-links a { margin-right: 15px; color: #007bff; text-decoration: none; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        select, button { padding: 5px; margin: 2px; }
+    </style>
+</head>
+<body>
+    <div class="auth-links">
+        Welcome, {{ user.username }} (Admin)!
+        <a href="{% url 'relationship_app:admin_view' %}">Admin Dashboard</a>
+        <a href="{% url 'relationship_app:logout' %}">Logout</a>
+    </div>
+    
+    <h1>Manage User Roles</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Current Role</th>
+                <th>Change Role</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user_obj in users %}
+            <tr>
+                <td>{{ user_obj.username }}</td>
+                <td>{{ user_obj.email }}</td>
+                <td>{{ user_obj.userprofile.role }}</td>
+                <td>
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user_obj.id }}">
+                        <select name="role">
+                            <option value="Admin" {% if user_obj.userprofile.role == 'Admin' %}selected{% endif %}>Admin</option>
+                            <option value="Librarian" {% if user_obj.userprofile.role == 'Librarian' %}selected{% endif %}>Librarian</option>
+                            <option value="Member" {% if user_obj.userprofile.role == 'Member' %}selected{% endif %}>Member</option>
+                        </select>
+                </td>
+                <td>
+                        <button type="submit">Update Role</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

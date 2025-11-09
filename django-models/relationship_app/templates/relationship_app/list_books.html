@@ -7,12 +7,20 @@
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
         .auth-links { margin: 20px 0; padding: 10px; background: #f8f9fa; }
         .auth-links a { margin-right: 15px; color: #007bff; text-decoration: none; }
+        .role-dashboard { background: #e9ecef; padding: 10px; margin: 10px 0; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="auth-links">
         {% if user.is_authenticated %}
-            Welcome, {{ user.username }}! 
+            Welcome, {{ user.username }}!
+            {% if user.userprofile.role == 'Admin' %}
+                (Admin) <a href="{% url 'relationship_app:admin_view' %}">Admin Dashboard</a>
+            {% elif user.userprofile.role == 'Librarian' %}
+                (Librarian) <a href="{% url 'relationship_app:librarian_view' %}">Librarian Dashboard</a>
+            {% elif user.userprofile.role == 'Member' %}
+                (Member) <a href="{% url 'relationship_app:member_view' %}">Member Dashboard</a>
+            {% endif %}
             <a href="{% url 'relationship_app:logout' %}">Logout</a>
         {% else %}
             <a href="{% url 'relationship_app:login' %}">Login</a>
