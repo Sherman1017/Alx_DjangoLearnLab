@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .auth-links { margin: 20px 0; padding: 10px; background: #f8f9fa; }
+        .auth-links a { margin-right: 15px; color: #007bff; text-decoration: none; }
+        .dashboard { background: #d4edda; padding: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="auth-links">
+        Welcome, {{ user.username }} (Admin)!
+        <a href="{% url 'relationship_app:logout' %}">Logout</a>
+        <a href="{% url 'relationship_app:manage_roles' %}">Manage User Roles</a>
+        <a href="{% url 'relationship_app:book_list' %}">View Books</a>
+        <a href="{% url 'relationship_app:library_list' %}">View Libraries</a>
+    </div>
+    
+    <div class="dashboard">
+        <h1>Admin Dashboard</h1>
+        <p>Welcome to the Admin panel! You have full access to manage the system.</p>
+        
+        <h2>Admin Privileges:</h2>
+        <ul>
+            <li>Manage user roles and permissions</li>
+            <li>Access all system features</li>
+            <li>View and modify all data</li>
+            <li>System configuration</li>
+        </ul>
+        
+        <p>Use the "Manage User Roles" link above to assign roles to users.</p>
+    </div>
+</body>
+</html>

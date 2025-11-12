@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Books</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .auth-links { margin: 20px 0; padding: 10px; background: #f8f9fa; }
+        .auth-links a { margin-right: 15px; color: #007bff; text-decoration: none; }
+        .actions { margin: 20px 0; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.9em; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .no-books { text-align: center; color: #666; padding: 40px; }
+        .messages { margin: 20px 0; }
+        .alert { padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+            Welcome, {{ user.username }}!
+            {% if user.userprofile.role == 'Admin' %}
+                (Admin) <a href="{% url 'relationship_app:admin_view' %}">Admin Dashboard</a>
+            {% elif user.userprofile.role == 'Librarian' %}
+                (Librarian) <a href="{% url 'relationship_app:librarian_view' %}">Librarian Dashboard</a>
+            {% elif user.userprofile.role == 'Member' %}
+                (Member) <a href="{% url 'relationship_app:member_view' %}">Member Dashboard</a>
+            {% endif %}
+            <a href="{% url 'relationship_app:logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'relationship_app:login' %}">Login</a>
+            <a href="{% url 'relationship_app:register' %}">Register</a>
+        {% endif %}
+        <a href="{% url 'relationship_app:book_list' %}">View Books</a>
+        <a href="{% url 'relationship_app:library_list' %}">View Libraries</a>
+    </div>
+    
+    <h1>Manage Books</h1>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="actions">
+        {% if can_add %}
+            <a href="{% url 'relationship_app:add_book' %}" class="btn btn-primary">Add New Book</a>
+        {% else %}
+            <button class="btn btn-secondary" disabled title="You don't have permission to add books">Add New Book</button>
+        {% endif %}
+    </div>
+    
+    {% if books %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author.name }}</td>
+                <td>
+                    {% if can_change %}
+                        <a href="{% url 'relationship_app:edit_book' book.pk %}" class="btn btn-warning">Edit</a>
+                    {% else %}
+                        <button class="btn btn-secondary" disabled title="You don't have permission to edit books">Edit</button>
+                    {% endif %}
+                    
+                    {% if can_delete %}
+                        <a href="{% url 'relationship_app:delete_book' book.pk %}" class="btn btn-danger">Delete</a>
+                    {% else %}
+                        <button class="btn btn-secondary" disabled title="You don't have permission to delete books">Delete</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-books">
+        <p>No books available.</p>
+        {% if can_add %}
+            <a href="{% url 'relationship_app:add_book' %}" class="btn btn-primary">Add the first book</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</body>
+</html>

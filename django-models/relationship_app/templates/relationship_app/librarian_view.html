@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Librarian Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .auth-links { margin: 20px 0; padding: 10px; background: #f8f9fa; }
+        .auth-links a { margin-right: 15px; color: #007bff; text-decoration: none; }
+        .dashboard { background: #d1ecf1; padding: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="auth-links">
+        Welcome, {{ user.username }} (Librarian)!
+        <a href="{% url 'relationship_app:logout' %}">Logout</a>
+        <a href="{% url 'relationship_app:book_list' %}">View Books</a>
+        <a href="{% url 'relationship_app:library_list' %}">View Libraries</a>
+    </div>
+    
+    <div class="dashboard">
+        <h1>Librarian Dashboard</h1>
+        <p>Welcome to the Librarian panel! You can manage library operations.</p>
+        
+        <h2>Librarian Responsibilities:</h2>
+        <ul>
+            <li>Manage book inventory</li>
+            <li>Handle member registrations</li>
+            <li>Process book checkouts and returns</li>
+            <li>Maintain library catalog</li>
+        </ul>
+        
+        <p>You have access to library management functions but not full system administration.</p>
+    </div>
+</body>
+</html>
