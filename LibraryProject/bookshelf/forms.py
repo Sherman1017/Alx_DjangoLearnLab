@@ -5,8 +5,7 @@ import re
 
 class BookForm(forms.ModelForm):
     """
-    Secure form with proper input validation and sanitization.
-    Includes CSRF protection automatically.
+    TASK 2: Secure form with input validation and CSRF protection
     """
     
     class Meta:
@@ -14,11 +13,11 @@ class BookForm(forms.ModelForm):
         fields = ['title', 'author', 'description', 'published_date', 'isbn']
         widgets = {
             'published_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={'rows': 4}),
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter book description...'}),
         }
     
     def clean_title(self):
-        """Validate and sanitize title input."""
+        """TASK 2: XSS protection - validate and sanitize title"""
         title = self.cleaned_data.get('title', '').strip()
         
         # Check for potentially dangerous patterns
@@ -38,23 +37,19 @@ class BookForm(forms.ModelForm):
         return title
     
     def clean_author(self):
-        """Validate author name."""
+        """TASK 2: Input validation - author name"""
         author = self.cleaned_data.get('author', '').strip()
         
-        # Basic sanitization - allow only letters, spaces, and common punctuation
         if not re.match(r'^[A-Za-z\s\-\'\.]+$', author):
             raise ValidationError('Author name contains invalid characters.')
             
         return author
     
     def clean_isbn(self):
-        """Validate ISBN format."""
+        """TASK 2: Input validation - ISBN format"""
         isbn = self.cleaned_data.get('isbn', '').strip()
-        
-        # Remove any hyphens or spaces
         isbn = isbn.replace('-', '').replace(' ', '')
         
-        # Validate ISBN length and format
         if len(isbn) not in [10, 13]:
             raise ValidationError('ISBN must be 10 or 13 digits long.')
         
@@ -62,3 +57,17 @@ class BookForm(forms.ModelForm):
             raise ValidationError('ISBN must contain only digits.')
             
         return isbn
+
+class ExampleForm(forms.Form):
+    """
+    TASK 2: Example form for demonstration
+    """
+    name = forms.CharField(max_length=100, required=True)
+    email = forms.EmailField(required=True)
+    message = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}))
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if len(name) < 2:
+            raise ValidationError('Name must be at least 2 characters long.')
+        return name

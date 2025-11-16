@@ -3,30 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Book - Secure Form</title>
+    <title>Form Example - ALX Django</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .error { color: red; font-size: 0.9em; }
+        .security-info { background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
 </head>
 <body>
-    <h1>Add New Book</h1>
-    
-    <!-- SECURE FORM: Includes CSRF token for protection -->
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}  <!-- CRITICAL: CSRF protection token -->
+    <h1>{% if editing %}Edit Book{% else %}{% if form.instance.pk %}Edit Book{% else %}Add New Book{% endif %}{% endif %}</h1>
+
+    <!-- TASK 2: CSRF Token Protection -->
+    <form method="post">
+        {% csrf_token %}
         
-        <!-- Django forms automatically escape content and provide validation -->
-        {{ form.as_p }}
-        
-        <button type="submit">Add Book</button>
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <div class="error">{{ field.errors.0 }}</div>
+            {% endif %}
+            {% if field.help_text %}
+            <small style="color: #666;">{{ field.help_text }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px;">
+            {% if editing %}Update Book{% else %}Add Book{% endif %}
+        </button>
     </form>
 
-    <!-- Security notes for developers -->
-    <div style="margin-top: 20px; padding: 10px; background: #f0f0f0;">
-        <h3>Security Features in this Form:</h3>
+    <!-- TASK 2: Security Features Information -->
+    <div class="security-info">
+        <h3>🔒 Security Features Implemented:</h3>
         <ul>
-            <li>CSRF Token: Prevents Cross-Site Request Forgery attacks</li>
-            <li>Auto-escaping: Prevents XSS attacks</li>
-            <li>Form validation: Server-side input validation</li>
-            <li>Model validation: Additional data integrity checks</li>
+            <li><strong>CSRF Protection:</strong> Form includes CSRF token to prevent Cross-Site Request Forgery</li>
+            <li><strong>Input Validation:</strong> All form fields are validated server-side</li>
+            <li><strong>XSS Prevention:</strong> User input is sanitized and escaped</li>
+            <li><strong>SQL Injection Protection:</strong> Using Django ORM with parameterized queries</li>
         </ul>
     </div>
+
+    <p><a href="{% url 'bookshelf:book_list' %}">← Back to Book List</a></p>
 </body>
 </html>

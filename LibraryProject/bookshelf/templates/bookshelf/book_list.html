@@ -3,62 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book List - Secure Django App</title>
+    <title>Book List - ALX Django</title>
     <style>
-        .security-notice { background: #e7f3ff; padding: 10px; margin: 10px 0; border-left: 4px solid #2196F3; }
-        .error { color: red; }
-        .success { color: green; }
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .security-badge { background: #4CAF50; color: white; padding: 10px; border-radius: 5px; }
+        .book-item { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .messages { margin: 20px 0; }
+        .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; }
+        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="security-notice">
-        <strong>Security Features Enabled:</strong> CSRF Protection, XSS Prevention, SQL Injection Protection
+    <div class="security-badge">
+        <strong>TASK 1 & 2: Permission System & Security Features</strong>
     </div>
 
     <h1>Book List</h1>
     
-    <!-- Secure search form with CSRF protection -->
-    <form method="get" action="{% url 'book_list' %}">
-        <input type="text" name="q" value="{{ search_query|default:'' }}" 
-               placeholder="Search books..." maxlength="100">
+    <!-- TASK 2: CSRF-protected search form -->
+    <form method="get" action="{% url 'bookshelf:book_list' %}">
+        <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search books..." maxlength="100">
         <button type="submit">Search</button>
     </form>
 
-    <!-- Display messages safely -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="{{ message.tags }}">{{ message|safe }}</div>
-        {% endfor %}
+    <!-- TASK 1: Permission-based actions -->
+    {% if perms.bookshelf.can_create %}
+    <p><a href="{% url 'bookshelf:add_book' %}">➕ Add New Book</a></p>
     {% endif %}
 
-    <!-- Safe rendering of book data (auto-escaping is enabled by default in Django) -->
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Book listings -->
     {% for book in page_obj %}
-        <div class="book-item">
-            <h3>{{ book.title }}</h3>  <!-- Auto-escaped by Django -->
-            <p><strong>Author:</strong> {{ book.author }}</p>  <!-- Auto-escaped -->
-            <p><strong>ISBN:</strong> {{ book.isbn }}</p>  <!-- Auto-escaped -->
-            <p><strong>Published:</strong> {{ book.published_date }}</p>
-            <!-- Description is safely rendered due to Django's auto-escaping -->
-            {% if book.description %}
-                <p>{{ book.description|truncatewords:30 }}</p>
+    <div class="book-item">
+        <h3>{{ book.title }}</h3>
+        <p><strong>Author:</strong> {{ book.author }}</p>
+        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        <p><strong>Published:</strong> {{ book.published_date }}</p>
+        <p><strong>Added by:</strong> {{ book.created_by.email }}</p>
+        
+        <!-- TASK 1: Permission-based edit/delete buttons -->
+        <div>
+            {% if perms.bookshelf.can_edit %}
+            <a href="{% url 'bookshelf:edit_book' book.id %}">✏️ Edit</a>
+            {% endif %}
+            {% if perms.bookshelf.can_delete %}
+            <a href="{% url 'bookshelf:delete_book' book.id %}" style="color: red;">🗑️ Delete</a>
             {% endif %}
         </div>
-        <hr>
+    </div>
     {% empty %}
-        <p>No books found.</p>
+    <p>No books found.</p>
     {% endfor %}
 
-    <!-- Safe pagination -->
+    <!-- Pagination -->
+    {% if page_obj.has_previous or page_obj.has_next %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">Previous</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Previous</a>
         {% endif %}
-        
         <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Next</a>
         {% endif %}
     </div>
+    {% endif %}
+
+    <p><a href="{% url 'bookshelf:security_demo' %}">← Back to Security Demo</a></p>
 </body>
 </html>

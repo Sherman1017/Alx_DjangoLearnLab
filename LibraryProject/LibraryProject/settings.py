@@ -27,7 +27,8 @@ DEBUG = True  # Set to False for security
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'yourdomain.com']  # Add your production domain
 
-# Application definition
+
+# Update INSTALLED_APPS to only include bookshelf
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,9 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',
-    'bookshelf',  # New bookshelf app for security demonstration
+    'bookshelf',  # Only this app - contains ALL tasks
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -50,6 +52,7 @@ MIDDLEWARE = [
     # Comment out or remove this line for now:
     # 'myproject.middleware.SecurityHeadersMiddleware',
 ]
+
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -140,7 +143,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
-AUTH_USER_MODEL = 'accounts.CustomUser'
+AUTH_USER_MODEL = 'bookshelf.CustomUser'
 
 # Media files configuration
 MEDIA_URL = '/media/'

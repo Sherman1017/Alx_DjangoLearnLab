@@ -4,9 +4,14 @@ from . import views
 app_name = 'bookshelf'
 
 urlpatterns = [
-    path('', views.book_list, name='book_list'),
-    path('add/', views.add_book, name='add_book'),
-    path('<int:book_id>/', views.book_detail, name='book_detail'),
-    # Educational endpoint (not for production)
-    path('unsafe-search/', views.unsafe_search_example, name='unsafe_search_example'),
+    # TASK 1: Permission-protected book views
+    path('books/', views.book_list, name='book_list'),
+    path('books/add/', views.add_book, name='add_book'),
+    path('books/<int:book_id>/edit/', views.edit_book, name='edit_book'),
+    path('books/<int:book_id>/delete/', views.delete_book, name='delete_book'),
+    
+    # TASK 2 & 3: Security demonstration views
+    path('', views.security_demo, name='security_demo'),
+    path('security/headers-check/', views.security_headers_check, name='headers_check'),
+    path('form-example/', views.form_example_view, name='form_example'),
 ]
