@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book List - Secure Django App</title>
+    <style>
+        .security-notice { background: #e7f3ff; padding: 10px; margin: 10px 0; border-left: 4px solid #2196F3; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="security-notice">
+        <strong>Security Features Enabled:</strong> CSRF Protection, XSS Prevention, SQL Injection Protection
+    </div>
+
+    <h1>Book List</h1>
+    
+    <!-- Secure search form with CSRF protection -->
+    <form method="get" action="{% url 'book_list' %}">
+        <input type="text" name="q" value="{{ search_query|default:'' }}" 
+               placeholder="Search books..." maxlength="100">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- Display messages safely -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="{{ message.tags }}">{{ message|safe }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Safe rendering of book data (auto-escaping is enabled by default in Django) -->
+    {% for book in page_obj %}
+        <div class="book-item">
+            <h3>{{ book.title }}</h3>  <!-- Auto-escaped by Django -->
+            <p><strong>Author:</strong> {{ book.author }}</p>  <!-- Auto-escaped -->
+            <p><strong>ISBN:</strong> {{ book.isbn }}</p>  <!-- Auto-escaped -->
+            <p><strong>Published:</strong> {{ book.published_date }}</p>
+            <!-- Description is safely rendered due to Django's auto-escaping -->
+            {% if book.description %}
+                <p>{{ book.description|truncatewords:30 }}</p>
+            {% endif %}
+        </div>
+        <hr>
+    {% empty %}
+        <p>No books found.</p>
+    {% endfor %}
+
+    <!-- Safe pagination -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">Previous</a>
+        {% endif %}
+        
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+</body>
+</html>

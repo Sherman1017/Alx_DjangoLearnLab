@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Book - Secure Form</title>
+</head>
+<body>
+    <h1>Add New Book</h1>
+    
+    <!-- SECURE FORM: Includes CSRF token for protection -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}  <!-- CRITICAL: CSRF protection token -->
+        
+        <!-- Django forms automatically escape content and provide validation -->
+        {{ form.as_p }}
+        
+        <button type="submit">Add Book</button>
+    </form>
+
+    <!-- Security notes for developers -->
+    <div style="margin-top: 20px; padding: 10px; background: #f0f0f0;">
+        <h3>Security Features in this Form:</h3>
+        <ul>
+            <li>CSRF Token: Prevents Cross-Site Request Forgery attacks</li>
+            <li>Auto-escaping: Prevents XSS attacks</li>
+            <li>Form validation: Server-side input validation</li>
+            <li>Model validation: Additional data integrity checks</li>
+        </ul>
+    </div>
+</body>
+</html>
