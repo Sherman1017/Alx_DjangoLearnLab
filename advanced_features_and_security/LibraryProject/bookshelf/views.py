@@ -7,7 +7,7 @@ from django.utils.html import escape
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensures_csrf_cookie
 from .models import Book, CustomUser
-from .forms import  ExampleForm
+from .forms import ExampleForm
 import logging
 
 logger = logging.getLogger(__name__)
