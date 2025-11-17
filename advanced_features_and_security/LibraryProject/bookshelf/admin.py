@@ -45,6 +45,7 @@ class CustomUserAdmin(UserAdmin):
     )
     search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
+admin.site.register(CustomUser, CustomUserAdmin)
 
 # ==============================================================================
 # TASK 1: BOOK ADMIN
