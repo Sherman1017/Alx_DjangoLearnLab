@@ -1,17 +1,10 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework import generics
 from .models import Book
+from .serializers import BookSerializer
 
-@api_view(['GET'])
-def book_list(request):
-    books = Book.objects.all()
-    book_data = [
-        {
-            'id': book.id,
-            'title': book.title,
-            'author': book.author,
-            'created_at': book.created_at,
-        }
-        for book in books
-    ]
-    return Response(book_data)
+class BookList(generics.ListAPIView):
+    """
+    API endpoint that allows books to be viewed.
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
