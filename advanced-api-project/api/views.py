@@ -1,5 +1,6 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
@@ -13,7 +14,7 @@ class ListView(generics.ListAPIView):
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]  # Public access
+    permission_classes = [AllowAny]  # Public access
 
 
 class DetailView(generics.RetrieveAPIView):
@@ -22,7 +23,7 @@ class DetailView(generics.RetrieveAPIView):
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]  # Public access
+    permission_classes = [AllowAny]  # Public access
 
 
 class CreateView(generics.CreateAPIView):
@@ -31,7 +32,7 @@ class CreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    permission_classes = [IsAuthenticated]  # Authenticated users only
     
     def perform_create(self, serializer):
         """Custom method called when creating a new book instance."""
@@ -47,7 +48,7 @@ class UpdateView(generics.UpdateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    permission_classes = [IsAuthenticated]  # Authenticated users only
     
     def update(self, request, *args, **kwargs):
         """
@@ -92,7 +93,7 @@ class DeleteView(generics.DestroyAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    permission_classes = [IsAuthenticated]  # Authenticated users only
     
     def destroy(self, request, *args, **kwargs):
         """
@@ -135,7 +136,7 @@ class AuthorListView(generics.ListAPIView):
     """
     queryset = Author.objects.prefetch_related('books').all()
     serializer_class = AuthorSerializer
-    permission_classes = [permissions.AllowAny]  # Public access
+    permission_classes = [AllowAny]  # Public access
 
 
 class AuthorDetailView(generics.RetrieveAPIView):
@@ -144,7 +145,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
     """
     queryset = Author.objects.prefetch_related('books').all()
     serializer_class = AuthorSerializer
-    permission_classes = [permissions.AllowAny]  # Public access
+    permission_classes = [AllowAny]  # Public access
 
 
 # =============================================================================
@@ -157,12 +158,7 @@ class BookListCreateView(generics.ListCreateAPIView):
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
-    
-    def get_permissions(self):
-        """Custom permission handling based on HTTP method."""
-        if self.request.method == 'GET':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Use the imported permission class
 
 
 class BookRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
@@ -171,9 +167,4 @@ class BookRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
-    
-    def get_permissions(self):
-        """Custom permission handling based on HTTP method."""
-        if self.request.method == 'GET':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Use the imported permission class
