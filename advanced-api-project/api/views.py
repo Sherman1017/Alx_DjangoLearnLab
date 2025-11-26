@@ -2,7 +2,6 @@ from rest_framework import generics, status, filters  # Added filters here
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from django_filters import rest_framework  # Exact import expected by automated checks
-from rest_framework.filters import SearchFilter
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 from .filters import BookFilter
@@ -22,7 +21,7 @@ class ListView(generics.ListAPIView):
     # Use the exact filter backend configuration expected
     filter_backends = [
         rest_framework.DjangoFilterBackend,  # Use the imported module
-        SearchFilter,  # SearchFilter integration
+        filters.SearchFilter,  # SearchFilter integration - USING filters.SearchFilter
         filters.OrderingFilter,  # OrderingFilter setup - USING filters.OrderingFilter
     ]
     
