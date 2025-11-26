@@ -1,4 +1,5 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
@@ -9,9 +10,6 @@ from .serializers import AuthorSerializer, BookSerializer
 class ListView(generics.ListAPIView):
     """
     List all books (Read-Only)
-    
-    Generic ListAPIView that provides read-only access to all Book instances.
-    Accessible to all users (authenticated and unauthenticated).
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
@@ -21,9 +19,6 @@ class ListView(generics.ListAPIView):
 class DetailView(generics.RetrieveAPIView):
     """
     Retrieve a single book by ID (Read-Only)
-    
-    Generic RetrieveAPIView that provides read-only access to a specific Book instance.
-    Accessible to all users (authenticated and unauthenticated).
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
@@ -33,9 +28,6 @@ class DetailView(generics.RetrieveAPIView):
 class CreateView(generics.CreateAPIView):
     """
     Create a new book (Authenticated Users Only)
-    
-    Generic CreateAPIView that allows creation of new Book instances.
-    Restricted to authenticated users only.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -50,12 +42,41 @@ class UpdateView(generics.UpdateAPIView):
     """
     Update an existing book (Authenticated Users Only)
     
-    Generic UpdateAPIView that allows full updates of Book instances.
-    Restricted to authenticated users only.
+    Note: This view now handles the book ID from request data
+    since the URL pattern doesn't include <int:pk>
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    
+    def update(self, request, *args, **kwargs):
+        """
+        Custom update method to handle book ID from request data
+        since URL pattern is just 'books/update/'
+        """
+        # Get book ID from request data
+        book_id = request.data.get('id')
+        if not book_id:
+            return Response(
+                {"error": "Book ID is required in request data"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get the book instance
+        try:
+            instance = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response(
+                {"error": "Book not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Perform the update
+        serializer = self.get_serializer(instance, data=request.data, partial=False)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return Response(serializer.data)
     
     def perform_update(self, serializer):
         """Custom method called when updating a book instance."""
@@ -66,12 +87,38 @@ class DeleteView(generics.DestroyAPIView):
     """
     Delete a book (Authenticated Users Only)
     
-    Generic DestroyAPIView that allows deletion of Book instances.
-    Restricted to authenticated users only.
+    Note: This view now handles the book ID from request data
+    since the URL pattern doesn't include <int:pk>
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Custom destroy method to handle book ID from request data
+        since URL pattern is just 'books/delete/'
+        """
+        # Get book ID from request data
+        book_id = request.data.get('id')
+        if not book_id:
+            return Response(
+                {"error": "Book ID is required in request data"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get the book instance
+        try:
+            instance = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response(
+                {"error": "Book not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Perform the deletion
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     def perform_destroy(self, instance):
         """Custom method called when deleting a book instance."""
