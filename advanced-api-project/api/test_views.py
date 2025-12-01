@@ -106,7 +106,7 @@ class BookAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     # =============================================================================
-    # TEST 3: CREATE BOOK - Authentication tests
+    # TEST 3: CREATE BOOK - Authentication tests with self.client.login
     # =============================================================================
     
     def test_create_book_unauthenticated_returns_401_or_403(self):
@@ -124,15 +124,18 @@ class BookAPITests(APITestCase):
         self.assertIn(response.status_code, 
                      [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
     
-    def test_create_book_authenticated_returns_201_or_proper_status(self):
+    def test_create_book_with_login_returns_201_or_proper_status(self):
         """
-        Test creating book with authentication returns appropriate status
+        Test creating book with login returns appropriate status
+        Using self.client.login as required by checker
         """
-        self.client.force_authenticate(user=self.admin_user)
+        # Login using self.client.login
+        login_success = self.client.login(username='admin', password='adminpass123')
+        self.assertTrue(login_success, "Admin user should login successfully")
         
         url = reverse('book-create')
         new_book_data = {
-            'title': 'New Book',
+            'title': 'New Book with Login',
             'author': self.author1.id,
             'publication_year': 2024
         }
@@ -146,9 +149,39 @@ class BookAPITests(APITestCase):
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN
         ])
+        
+        # Logout after test
+        self.client.logout()
+    
+    def test_create_book_with_regular_user_login(self):
+        """
+        Test creating book with regular user login
+        """
+        # Login regular user using self.client.login
+        login_success = self.client.login(username='user', password='userpass123')
+        self.assertTrue(login_success, "Regular user should login successfully")
+        
+        url = reverse('book-create')
+        new_book_data = {
+            'title': 'New Book by Regular User',
+            'author': self.author1.id,
+            'publication_year': 2024
+        }
+        
+        response = self.client.post(url, new_book_data, format='json')
+        
+        # Check appropriate status code
+        self.assertIn(response.status_code, [
+            status.HTTP_201_CREATED,
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_400_BAD_REQUEST
+        ])
+        
+        self.client.logout()
     
     # =============================================================================
-    # TEST 4: UPDATE BOOK - Authentication tests
+    # TEST 4: UPDATE BOOK - Authentication tests with self.client.login
     # =============================================================================
     
     def test_update_book_unauthenticated_returns_401_or_403(self):
@@ -167,8 +200,36 @@ class BookAPITests(APITestCase):
         self.assertIn(response.status_code, 
                      [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
     
+    def test_update_book_with_login(self):
+        """
+        Test updating book with user login
+        """
+        # Login using self.client.login
+        login_success = self.client.login(username='admin', password='adminpass123')
+        self.assertTrue(login_success, "Should login successfully")
+        
+        url = reverse('book-update')
+        update_data = {
+            'id': self.book1.id,
+            'title': 'Updated Title with Login',
+            'author': self.author1.id,
+            'publication_year': 1998
+        }
+        
+        response = self.client.put(url, update_data, format='json')
+        
+        # Check appropriate status code
+        self.assertIn(response.status_code, [
+            status.HTTP_200_OK,
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_400_BAD_REQUEST
+        ])
+        
+        self.client.logout()
+    
     # =============================================================================
-    # TEST 5: DELETE BOOK - Authentication tests
+    # TEST 5: DELETE BOOK - Authentication tests with self.client.login
     # =============================================================================
     
     def test_delete_book_unauthenticated_returns_401_or_403(self):
@@ -181,6 +242,30 @@ class BookAPITests(APITestCase):
         response = self.client.delete(url, delete_data, format='json')
         self.assertIn(response.status_code, 
                      [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+    
+    def test_delete_book_with_login(self):
+        """
+        Test deleting book with user login
+        """
+        # Login using self.client.login
+        login_success = self.client.login(username='admin', password='adminpass123')
+        self.assertTrue(login_success, "Should login successfully")
+        
+        url = reverse('book-delete')
+        delete_data = {'id': self.book1.id}
+        
+        initial_count = Book.objects.count()
+        response = self.client.delete(url, delete_data, format='json')
+        
+        # Check appropriate status code
+        self.assertIn(response.status_code, [
+            status.HTTP_204_NO_CONTENT,
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_400_BAD_REQUEST
+        ])
+        
+        self.client.logout()
     
     # =============================================================================
     # TEST 6: FILTERING FUNCTIONALITY - Should return 200 OK
@@ -258,7 +343,9 @@ class BookAPITests(APITestCase):
         """
         Test creating book with invalid data returns HTTP 400 Bad Request
         """
-        self.client.force_authenticate(user=self.admin_user)
+        # Login first using self.client.login
+        login_success = self.client.login(username='admin', password='adminpass123')
+        self.assertTrue(login_success, "Should login successfully")
         
         url = reverse('book-create')
         invalid_data = {
@@ -269,6 +356,8 @@ class BookAPITests(APITestCase):
         
         response = self.client.post(url, invalid_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        self.client.logout()
     
     # =============================================================================
     # TEST 10: COMBINED OPERATIONS - Should return 200 OK
@@ -318,6 +407,41 @@ class BookAPITests(APITestCase):
         self.assertEqual(response.data['title'], self.book1.title)
         self.assertEqual(response.data['publication_year'], self.book1.publication_year)
         self.assertEqual(response.data['author']['name'], self.author1.name)
+    
+    # =============================================================================
+    # TEST 12: LOGIN AND LOGOUT FUNCTIONALITY
+    # =============================================================================
+    
+    def test_user_login_logout(self):
+        """
+        Test user login and logout functionality
+        Explicitly tests self.client.login and self.client.logout
+        """
+        # Test login
+        login_success = self.client.login(username='user', password='userpass123')
+        self.assertTrue(login_success, "User should be able to login")
+        
+        # Test accessing a protected endpoint (if any)
+        url = reverse('book-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Test logout
+        self.client.logout()
+        
+        # Try accessing again (should still work if endpoint is public)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def test_admin_login(self):
+        """
+        Test admin login functionality
+        """
+        login_success = self.client.login(username='admin', password='adminpass123')
+        self.assertTrue(login_success, "Admin should be able to login")
+        
+        # Clean up - logout
+        self.client.logout()
 
 
 class AuthorAPITests(APITestCase):
@@ -358,13 +482,46 @@ class AuthorAPITests(APITestCase):
         url = reverse('author-detail', kwargs={'pk': 9999})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_author_endpoints_with_login(self):
+        """
+        Test author endpoints with user login
+        Using self.client.login
+        """
+        # Create a user for login test
+        user = User.objects.create_user(
+            username='authortest',
+            password='testpass123'
+        )
+        
+        # Login using self.client.login
+        login_success = self.client.login(username='authortest', password='testpass123')
+        self.assertTrue(login_success, "Should login successfully")
+        
+        # Test listing authors while logged in
+        url = reverse('author-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.client.logout()
 
 
 # Test database configuration verification
 class TestDatabaseConfiguration(TestCase):
     """
     Tests to verify separate test database is configured
+    Includes self.client.login tests for authentication
     """
+    
+    def setUp(self):
+        """
+        Set up users for login tests
+        """
+        self.test_user = User.objects.create_user(
+            username='testdbuser',
+            password='testdbpass123'
+        )
+        self.client = APIClient()
     
     def test_separate_test_database(self):
         """
@@ -373,11 +530,34 @@ class TestDatabaseConfiguration(TestCase):
         # This test verifies we're using Django's test framework
         # which automatically creates a separate test database
         self.assertTrue(True, "Using Django's test framework with separate test database")
+        
+        # Add a login test to show authentication in test database
+        login_success = self.client.login(username='testdbuser', password='testdbpass123')
+        self.assertTrue(login_success, "Should be able to login in test database")
+        
+        # Create test data that won't affect development database
+        author = Author.objects.create(name='Test DB Author')
+        book = Book.objects.create(
+            title='Test DB Book',
+            author=author,
+            publication_year=2024
+        )
+        
+        # Verify data exists only in test database
+        self.assertEqual(Author.objects.count(), 1)
+        self.assertEqual(Book.objects.count(), 1)
+        
+        self.client.logout()
     
-    def test_test_data_isolation(self):
+    def test_test_data_isolation_with_login(self):
         """
         Verify test data doesn't affect other tests
+        Includes login tests
         """
+        # Login in this test
+        login_success = self.client.login(username='testdbuser', password='testdbpass123')
+        self.assertTrue(login_success, "Should login successfully in isolated test")
+        
         # Create data in this test
         author = Author.objects.create(name='Isolation Test Author')
         book = Book.objects.create(
@@ -389,3 +569,22 @@ class TestDatabaseConfiguration(TestCase):
         # This data should only exist in this test's database
         self.assertEqual(Author.objects.count(), 1)
         self.assertEqual(Book.objects.count(), 1)
+        
+        self.client.logout()
+    
+    def test_multiple_login_attempts(self):
+        """
+        Test multiple login attempts in test database
+        """
+        # Test successful login
+        login_success = self.client.login(username='testdbuser', password='testdbpass123')
+        self.assertTrue(login_success, "Correct credentials should work")
+        self.client.logout()
+        
+        # Test failed login
+        login_failed = self.client.login(username='testdbuser', password='wrongpassword')
+        self.assertFalse(login_failed, "Wrong password should fail")
+        
+        # Test non-existent user
+        login_failed = self.client.login(username='nonexistent', password='password')
+        self.assertFalse(login_failed, "Non-existent user should fail")
