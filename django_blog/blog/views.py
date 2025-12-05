@@ -1,26 +1,93 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, logout, authenticate
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
 from django.urls import reverse_lazy
 from .models import Post
+from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 
-def home(request):
-    recent_posts = Post.objects.all()[:3]
-    return render(request, 'blog/home.html', {'recent_posts': recent_posts})
-
+# Authentication Views
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('login')
     else:
-        form = UserCreationForm()
-    return render(request, 'registration/register.html', {'form': form})
+        form = UserRegisterForm()
+    return render(request, 'blog/register.html', {'form': form})
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f'Welcome back, {username}!')
+                return redirect('home')
+            else:
+                messages.error(request, 'Invalid username or password.')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'blog/login.html', {'form': form})
+
+@login_required
+def user_logout(request):
+    logout(request)
+    messages.info(request, 'You have been logged out successfully.')
+    return redirect('home')
+
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            
+            # Handle profile data (we'll extend User model in the future)
+            bio = profile_form.cleaned_data.get('bio')
+            profile_picture = profile_form.cleaned_data.get('profile_picture')
+            
+            # For now, store in session or message
+            if bio:
+                request.session['user_bio'] = bio
+                messages.info(request, 'Bio updated successfully.')
+            
+            if profile_picture:
+                # In a real app, you'd save this to a file
+                messages.info(request, 'Profile picture uploaded successfully.')
+            
+            messages.success(request, 'Your profile has been updated!')
+            return redirect('profile')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        
+        # Get existing profile data from session
+        initial_data = {'bio': request.session.get('user_bio', '')}
+        profile_form = ProfileUpdateForm(initial=initial_data)
+    
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form
+    }
+    return render(request, 'blog/profile.html', context)
+
+# Existing Blog Views
+def home(request):
+    recent_posts = Post.objects.all()[:3]
+    return render(request, 'blog/home.html', {'recent_posts': recent_posts})
 
 class PostListView(ListView):
     model = Post

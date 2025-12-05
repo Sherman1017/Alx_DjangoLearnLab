@@ -1,0 +1,81 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Profile - Django Blog{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h2>Your Profile</h2>
+    
+    <div class="profile-info">
+        <div class="profile-header">
+            <h3>{{ user.username }}</h3>
+            <p class="email">{{ user.email }}</p>
+            <p class="member-since">Member since: {{ user.date_joined|date:"F d, Y" }}</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <h4>Posts Created</h4>
+                <p class="stat-number">{{ user.post_set.count }}</p>
+            </div>
+            <div class="stat-item">
+                <h4>Last Login</h4>
+                <p class="stat-number">{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="profile-forms">
+        <h3>Update Profile</h3>
+        
+        <form method="POST" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h4>Account Information</h4>
+                {% for field in user_form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        
+                        {% if field.errors %}
+                            <div class="error-message">
+                                {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-section">
+                <h4>Profile Details</h4>
+                {% for field in profile_form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        
+                        {% if field.errors %}
+                            <div class="error-message">
+                                {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        {% if field.help_text %}
+                            <small class="help-text">{{ field.help_text }}</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

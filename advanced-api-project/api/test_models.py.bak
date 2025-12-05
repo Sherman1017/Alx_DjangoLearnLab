@@ -1,0 +1,32 @@
+from django.test import TestCase
+from .models import Author, Book
+
+class ModelTests(TestCase):
+    """
+    Test the models
+    """
+    
+    def test_create_author(self):
+        """Test creating an author"""
+        author = Author.objects.create(name='Test Author')
+        self.assertEqual(str(author), 'Test Author')
+        self.assertEqual(author.name, 'Test Author')
+    
+    def test_create_book(self):
+        """Test creating a book with actual fields from your model"""
+        author = Author.objects.create(name='Test Author')
+        
+        # Create book with only the fields that actually exist in your model
+        book_data = {
+            'title': 'Test Book',
+            'author': author,
+            'publication_year': 2020,
+        }
+        
+        book = Book.objects.create(**book_data)
+        
+        # Check the string representation (might be 'Title by Author')
+        self.assertIn('Test Book', str(book))
+        self.assertEqual(book.title, 'Test Book')
+        self.assertEqual(book.author.name, 'Test Author')
+        self.assertEqual(book.publication_year, 2020)
