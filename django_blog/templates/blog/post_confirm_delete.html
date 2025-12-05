@@ -1,0 +1,53 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Delete Post - Django Blog{% endblock %}
+
+{% block content %}
+<div class="delete-confirmation">
+    <h1>Delete Post</h1>
+    
+    <div class="confirmation-message">
+        <p>Are you sure you want to delete the post "{{ object.title }}"?</p>
+        <p>This action cannot be undone.</p>
+    </div>
+    
+    <form method="POST" class="delete-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-delete">Yes, Delete</button>
+            <a href="{% url 'post_detail' object.id %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.delete-confirmation {
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.delete-confirmation h1 {
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+}
+
+.confirmation-message {
+    margin-bottom: 2rem;
+}
+
+.confirmation-message p {
+    margin-bottom: 0.5rem;
+}
+
+.delete-form .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+</style>
+{% endblock %}
