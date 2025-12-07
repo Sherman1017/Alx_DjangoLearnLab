@@ -5,13 +5,13 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Q
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 from .forms import CommentForm, PostForm
-from taggit.models import Tag
 
-# Home view with post list and search
+# Home view with post list
 def home(request):
     posts = Post.objects.all()
+    tags = Tag.objects.all()
     
     # Search functionality
     query = request.GET.get('q')
@@ -22,25 +22,43 @@ def home(request):
             Q(tags__name__icontains=query)
         ).distinct()
     
-    # Get all tags for tag cloud
-    all_tags = Tag.objects.all()
-    
     return render(request, 'blog/home.html', {
         'posts': posts,
         'query': query,
-        'all_tags': all_tags,
+        'tags': tags,
+    })
+
+# Search results view
+def search_results(request):
+    query = request.GET.get('q', '')
+    posts = Post.objects.all()
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    tags = Tag.objects.all()
+    
+    return render(request, 'blog/search_results.html', {
+        'posts': posts,
+        'query': query,
+        'tags': tags,
+        'results_count': posts.count(),
     })
 
 # View posts by tag
-def posts_by_tag(request, tag_name):
-    tag = get_object_or_404(Tag, name=tag_name)
-    posts = Post.objects.filter(tags__name=tag_name)
-    all_tags = Tag.objects.all()
+def posts_by_tag(request, slug):
+    tag = get_object_or_404(Tag, slug=slug)
+    posts = Post.objects.filter(tags=tag)
+    tags = Tag.objects.all()
     
     return render(request, 'blog/posts_by_tag.html', {
         'tag': tag,
         'posts': posts,
-        'all_tags': all_tags,
+        'tags': tags,
     })
 
 # Post detail view
@@ -100,7 +118,7 @@ def post_edit(request, pk):
     else:
         # Initialize form with current tags as comma-separated string
         initial_tags = ', '.join(tag.name for tag in post.tags.all())
-        form = PostForm(instance=post, initial={'tags': initial_tags})
+        form = PostForm(instance=post, initial={'tag_names': initial_tags})
     
     return render(request, 'blog/post_form.html', {'form': form})
 
@@ -163,24 +181,3 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         comment = self.get_object()
         messages.success(self.request, 'Your comment has been deleted!')
         return reverse_lazy('post_detail', kwargs={'pk': comment.post.pk})
-
-# Search results view
-def search_results(request):
-    query = request.GET.get('q', '')
-    posts = Post.objects.all()
-    
-    if query:
-        posts = posts.filter(
-            Q(title__icontains=query) |
-            Q(content__icontains=query) |
-            Q(tags__name__icontains=query)
-        ).distinct()
-    
-    all_tags = Tag.objects.all()
-    
-    return render(request, 'blog/search_results.html', {
-        'posts': posts,
-        'query': query,
-        'all_tags': all_tags,
-        'results_count': posts.count(),
-    })

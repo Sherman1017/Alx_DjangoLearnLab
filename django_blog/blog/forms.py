@@ -1,7 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Comment, Post
-from taggit.models import Tag
+from .models import Comment, Post, Tag
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -26,18 +25,18 @@ class CommentForm(forms.ModelForm):
         return content
 
 class PostForm(forms.ModelForm):
-    tags = forms.CharField(
+    tag_names = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter tags separated by commas (e.g., django, python, web)'
         }),
-        help_text='Separate tags with commas'
+        help_text='Separate tags with commas. New tags will be created automatically.'
     )
     
     class Meta:
         model = Post
-        fields = ['title', 'content', 'tags']
+        fields = ['title', 'content', 'tag_names']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -50,11 +49,11 @@ class PostForm(forms.ModelForm):
             }),
         }
     
-    def clean_tags(self):
-        tags = self.cleaned_data.get('tags', '')
-        if tags:
+    def clean_tag_names(self):
+        tag_names = self.cleaned_data.get('tag_names', '')
+        if tag_names:
             # Split by commas and clean up whitespace
-            tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            tag_list = [tag.strip() for tag in tag_names.split(',') if tag.strip()]
             # Remove duplicates
             tag_list = list(set(tag_list))
             return tag_list
@@ -64,9 +63,23 @@ class PostForm(forms.ModelForm):
         post = super().save(commit=False)
         if commit:
             post.save()
-            # Clear existing tags and add new ones
+            
+            # Process tags
+            tag_names = self.cleaned_data.get('tag_names', [])
             post.tags.clear()
-            for tag in self.cleaned_data['tags']:
+            
+            for tag_name in tag_names:
+                tag_name_lower = tag_name.lower().strip()
+                # Create slug from tag name
+                slug = tag_name_lower.replace(' ', '-')
+                
+                # Get or create tag
+                tag, created = Tag.objects.get_or_create(
+                    name=tag_name_lower,
+                    defaults={'slug': slug}
+                )
                 post.tags.add(tag)
+            
             self.save_m2m()
+        
         return post

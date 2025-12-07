@@ -4,33 +4,26 @@ from . import views
 from .views import (
     CommentCreateView, 
     CommentUpdateView, 
-    CommentDeleteView,
-    post_detail,
-    home,
-    post_create,
-    post_edit,
-    post_delete,
-    posts_by_tag,
-    search_results
+    CommentDeleteView
 )
 
 urlpatterns = [
-    # Home page with search
-    path('', home, name='home'),
+    # Home page
+    path('', views.home, name='home'),
     
-    # Search results
-    path('search/', search_results, name='search_results'),
+    # Search functionality
+    path('search/', views.search_results, name='search_results'),
+    
+    # Tag functionality
+    path('tags/<slug:slug>/', views.posts_by_tag, name='posts_by_tag'),
     
     # Post URLs
-    path('post/new/', post_create, name='post_create'),
-    path('post/<int:pk>/', post_detail, name='post_detail'),
-    path('post/<int:pk>/edit/', post_edit, name='post_edit'),
-    path('post/<int:pk>/delete/', post_delete, name='post_delete'),
+    path('post/new/', views.post_create, name='post_create'),
+    path('post/<int:pk>/', views.post_detail, name='post_detail'),
+    path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
+    path('post/<int:pk>/delete/', views.post_delete, name='post_delete'),
     
-    # Tag URLs
-    path('tags/<str:tag_name>/', posts_by_tag, name='posts_by_tag'),
-    
-    # Comment URLs - EXACT PATTERNS REQUIRED BY CHECKER
+    # Comment URLs
     path('post/<int:pk>/comments/new/', 
          CommentCreateView.as_view(), 
          name='comment_create'),

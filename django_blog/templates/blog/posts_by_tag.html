@@ -4,19 +4,21 @@
 
 {% block content %}
 <div class="d-flex align-items-center mb-4">
-    <h1 class="mb-0">Posts tagged: </h1>
-    <span class="badge bg-primary ms-2 fs-5">{{ tag.name }}</span>
+    <h1 class="mb-0 me-2">Posts tagged:</h1>
+    <span class="badge bg-primary fs-5">{{ tag.name }}</span>
 </div>
 
 <!-- Tag Cloud -->
-{% if all_tags %}
-<div class="tag-cloud mb-4">
-    <h5>Browse other tags:</h5>
-    {% for t in all_tags %}
-        <a href="{% url 'posts_by_tag' tag_name=t.name %}" class="tag {% if t.name == tag.name %}bg-primary text-white{% endif %}">
-            {{ t.name }}
-        </a>
-    {% endfor %}
+{% if tags %}
+<div class="tag-cloud card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Browse other tags:</h5>
+        {% for t in tags %}
+            <a href="{% url 'posts_by_tag' slug=t.slug %}" class="tag badge {% if t.name == tag.name %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none me-1 mb-1">
+                {{ t.name }}
+            </a>
+        {% endfor %}
+    </div>
 </div>
 {% endif %}
 
@@ -27,28 +29,30 @@
 </div>
 
 {% for post in posts %}
-<div class="post">
-    <h2>{{ post.title }}</h2>
-    <p class="text-muted">
-        By {{ post.author }} on {{ post.created_at|date:"F d, Y" }}
-    </p>
-    
-    <!-- Tags -->
-    {% if post.tags.all %}
-    <div class="mb-3">
-        <strong>Tags:</strong>
-        {% for t in post.tags.all %}
-            <a href="{% url 'posts_by_tag' tag_name=t.name %}" class="tag {% if t.name == tag.name %}bg-primary text-white{% endif %}">
-                {{ t.name }}
-            </a>
-        {% endfor %}
+<div class="post card mb-4">
+    <div class="card-body">
+        <h2 class="card-title">{{ post.title }}</h2>
+        <p class="text-muted">
+            By {{ post.author }} on {{ post.created_at|date:"F d, Y" }}
+        </p>
+        
+        <!-- Tags -->
+        {% if post.tags.all %}
+        <div class="mb-3">
+            <strong>Tags:</strong>
+            {% for t in post.tags.all %}
+                <a href="{% url 'posts_by_tag' slug=t.slug %}" class="tag badge {% if t.name == tag.name %}bg-primary{% else %}bg-secondary{% endif %} text-decoration-none me-1">
+                    {{ t.name }}
+                </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <p class="card-text">{{ post.content|truncatewords:50 }}</p>
+        <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-primary">
+            Read More
+        </a>
     </div>
-    {% endif %}
-    
-    <p>{{ post.content|truncatewords:50 }}</p>
-    <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-primary">
-        Read More
-    </a>
 </div>
 {% endfor %}
 
