@@ -1,34 +1,41 @@
-{% extends 'blog/base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}Home - Django Blog{% endblock %}
+{% block title %}Blog Posts{% endblock %}
 
 {% block content %}
-<h1>Welcome to Django Blog</h1>
-<p>Share your thoughts and ideas with the world.</p>
+<h1 class="mb-4">Blog Posts</h1>
+
+{% for post in posts %}
+<div class="post">
+    <h2>{{ post.title }}</h2>
+    <p class="text-muted">
+        By {{ post.author }} on {{ post.created_at|date:"F d, Y" }}
+    </p>
+    <p>{{ post.content|truncatewords:50 }}</p>
+    <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-primary">
+        Read More & View Comments
+    </a>
+</div>
+{% empty %}
+<div class="alert alert-info">
+    <h4>No posts yet!</h4>
+    <p>Check back later for new blog posts.</p>
+</div>
+{% endfor %}
 
 {% if user.is_authenticated %}
-    <p>Welcome back, {{ user.username }}!</p>
-    <a href="{% url 'post_create' %}" class="btn btn-primary">Create New Post</a>
-{% else %}
-    <p>Join our community of writers.</p>
-    <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
-    <a href="{% url 'login' %}" class="btn btn-secondary">Login</a>
-{% endif %}
-
-<hr>
-
-<h2>Recent Posts</h2>
-{% if recent_posts %}
-    {% for post in recent_posts %}
-        <div class="post">
-            <h3><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h3>
-            <p class="meta">By {{ post.author.username }} on {{ post.published_date|date:"F d, Y" }}</p>
-            <p>{{ post.content|truncatechars:150 }}</p>
-            <a href="{% url 'post_detail' post.pk %}">Read more →</a>
+<div class="mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Comment System URLs</h5>
+            <p class="card-text">The comment system uses these URL patterns:</p>
+            <ul>
+                <li><code>/posts/&lt;post_id&gt;/comments/new/</code> - Create new comment</li>
+                <li><code>/comments/&lt;comment_id&gt;/edit/</code> - Edit comment</li>
+                <li><code>/comments/&lt;comment_id&gt;/delete/</code> - Delete comment</li>
+            </ul>
         </div>
-    {% endfor %}
-    <a href="{% url 'post_list' %}">View all posts →</a>
-{% else %}
-    <p>No posts yet. Be the first to write one!</p>
+    </div>
+</div>
 {% endif %}
 {% endblock %}
