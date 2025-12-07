@@ -1,6 +1,7 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from .models import Post
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -16,13 +17,23 @@ class UserRegisterForm(UserCreationForm):
             user.save()
         return user
 
-class UserUpdateForm(forms.ModelForm):
-    email = forms.EmailField()
-    
+class PostForm(forms.ModelForm):
     class Meta:
-        model = User
-        fields = ['username', 'email']
-
-class ProfileUpdateForm(forms.Form):
-    bio = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False)
-    profile_picture = forms.ImageField(required=False)
+        model = Post
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter post title'
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Write your post content here...',
+                'rows': 10
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].label = 'Post Title'
+        self.fields['content'].label = 'Content'

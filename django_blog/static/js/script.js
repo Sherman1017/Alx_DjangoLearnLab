@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
             message.style.transition = 'opacity 0.5s ease';
             message.style.opacity = '0';
             setTimeout(function() {
-                message.remove();
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
             }, 500);
         }, 5000);
     });
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('error-message')) {
                         const errorDiv = document.createElement('div');
                         errorDiv.className = 'error-message';
-                        errorDiv.textContent = 'This field is required.';
+                        errorDiv.innerHTML = '<p><i class="fas fa-exclamation-circle"></i> This field is required.</p>';
                         field.parentNode.insertBefore(errorDiv, field.nextSibling);
                     }
                 } else {
@@ -55,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!password2.nextElementSibling || !password2.nextElementSibling.classList.contains('error-message')) {
                     const errorDiv = document.createElement('div');
                     errorDiv.className = 'error-message';
-                    errorDiv.textContent = 'Passwords do not match.';
+                    errorDiv.innerHTML = '<p><i class="fas fa-exclamation-circle"></i> Passwords do not match.</p>';
                     password2.parentNode.insertBefore(errorDiv, password2.nextSibling);
                 }
             }
@@ -97,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const toggleBtn = document.createElement('button');
         toggleBtn.type = 'button';
         toggleBtn.className = 'password-toggle';
-        toggleBtn.innerHTML = '👁️';
+        toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
         toggleBtn.style.background = 'none';
         toggleBtn.style.border = 'none';
         toggleBtn.style.cursor = 'pointer';
@@ -105,7 +107,9 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleBtn.style.right = '10px';
         toggleBtn.style.top = '50%';
         toggleBtn.style.transform = 'translateY(-50%)';
-        toggleBtn.style.fontSize = '1.2em';
+        toggleBtn.style.fontSize = '1em';
+        toggleBtn.style.color = '#666';
+        toggleBtn.style.padding = '0.5rem';
         
         field.parentNode.insertBefore(wrapper, field);
         wrapper.appendChild(field);
@@ -114,11 +118,52 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleBtn.addEventListener('click', function() {
             if (field.type === 'password') {
                 field.type = 'text';
-                toggleBtn.innerHTML = '👁️‍🗨️';
+                toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
             } else {
                 field.type = 'password';
-                toggleBtn.innerHTML = '👁️';
+                toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
             }
         });
+    });
+    
+    // Character counter for post content
+    const contentTextarea = document.querySelector('#id_content');
+    if (contentTextarea) {
+        const counter = document.createElement('div');
+        counter.className = 'char-counter';
+        counter.style.textAlign = 'right';
+        counter.style.fontSize = '0.875rem';
+        counter.style.color = '#666';
+        counter.style.marginTop = '0.25rem';
+        
+        contentTextarea.parentNode.appendChild(counter);
+        
+        function updateCounter() {
+            const length = contentTextarea.value.length;
+            counter.textContent = `${length} characters`;
+            
+            if (length > 10000) {
+                counter.style.color = '#dc3545';
+            } else if (length > 5000) {
+                counter.style.color = '#ffc107';
+            } else {
+                counter.style.color = '#666';
+            }
+        }
+        
+        contentTextarea.addEventListener('input', updateCounter);
+        updateCounter(); // Initial count
+    }
+    
+    // Auto-resize textarea
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(function(textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Trigger initial resize
+        textarea.dispatchEvent(new Event('input'));
     });
 });

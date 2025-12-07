@@ -1,13 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from .models import Post
-from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
+from .forms import UserRegisterForm, PostForm
 
 # Authentication Views
 def register(request):
@@ -47,85 +48,67 @@ def user_logout(request):
     messages.info(request, 'You have been logged out successfully.')
     return redirect('home')
 
-@login_required
-def profile(request):
-    if request.method == 'POST':
-        user_form = UserUpdateForm(request.POST, instance=request.user)
-        profile_form = ProfileUpdateForm(request.POST, request.FILES)
-        
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            
-            # Handle profile data (we'll extend User model in the future)
-            bio = profile_form.cleaned_data.get('bio')
-            profile_picture = profile_form.cleaned_data.get('profile_picture')
-            
-            # For now, store in session or message
-            if bio:
-                request.session['user_bio'] = bio
-                messages.info(request, 'Bio updated successfully.')
-            
-            if profile_picture:
-                # In a real app, you'd save this to a file
-                messages.info(request, 'Profile picture uploaded successfully.')
-            
-            messages.success(request, 'Your profile has been updated!')
-            return redirect('profile')
-    else:
-        user_form = UserUpdateForm(instance=request.user)
-        
-        # Get existing profile data from session
-        initial_data = {'bio': request.session.get('user_bio', '')}
-        profile_form = ProfileUpdateForm(initial=initial_data)
-    
-    context = {
-        'user_form': user_form,
-        'profile_form': profile_form
-    }
-    return render(request, 'blog/profile.html', context)
-
-# Existing Blog Views
 def home(request):
     recent_posts = Post.objects.all()[:3]
     return render(request, 'blog/home.html', {'recent_posts': recent_posts})
 
+# Blog Post CRUD Views
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
     paginate_by = 5
+    
+    def get_queryset(self):
+        return Post.objects.all().order_by('-published_date')
 
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
+    form_class = PostForm
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content']
+    success_url = reverse_lazy('post_list')
     
     def form_valid(self, form):
         form.instance.author = self.request.user
+        messages.success(self.request, 'Your post has been created successfully!')
         return super().form_valid(form)
 
-class PostUpdateView(LoginRequiredMixin, UpdateView):
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
+    form_class = PostForm
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content']
     
-    def dispatch(self, request, *args, **kwargs):
-        obj = self.get_object()
-        if obj.author != self.request.user:
-            return redirect('post_detail', pk=obj.pk)
-        return super().dispatch(request, *args, **kwargs)
+    def form_valid(self, form):
+        messages.success(self.request, 'Your post has been updated successfully!')
+        return super().form_valid(form)
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
 
-class PostDeleteView(LoginRequiredMixin, DeleteView):
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('post_list')
     
-    def dispatch(self, request, *args, **kwargs):
-        obj = self.get_object()
-        if obj.author != self.request.user:
-            return redirect('post_detail', pk=obj.pk)
-        return super().dispatch(request, *args, **kwargs)
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Your post has been deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+# Profile View
+@login_required
+def profile(request):
+    user_posts = Post.objects.filter(author=request.user).order_by('-published_date')
+    return render(request, 'blog/profile.html', {'user_posts': user_posts})

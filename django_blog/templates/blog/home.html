@@ -11,48 +11,80 @@
         <div class="user-welcome">
             <p>Welcome back, <strong>{{ user.username }}</strong>!</p>
             <div class="cta-buttons">
-                <a href="{% url 'post_create' %}" class="btn btn-primary">Write a New Post</a>
-                <a href="{% url 'profile' %}" class="btn btn-secondary">View Your Profile</a>
+                <a href="{% url 'post_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Post
+                </a>
+                <a href="{% url 'profile' %}" class="btn btn-secondary">
+                    <i class="fas fa-user"></i> View Profile
+                </a>
             </div>
         </div>
     {% else %}
         <div class="cta-buttons">
-            <a href="{% url 'register' %}" class="btn btn-primary">Join Now</a>
-            <a href="{% url 'login' %}" class="btn btn-secondary">Login</a>
+            <a href="{% url 'register' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Join Now
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-secondary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
         </div>
     {% endif %}
 </div>
 
 <div class="features">
     <div class="feature-card">
-        <h3>✍️ Write & Share</h3>
+        <i class="fas fa-edit fa-3x"></i>
+        <h3>Write & Share</h3>
         <p>Create beautiful blog posts and share them with the community.</p>
     </div>
     <div class="feature-card">
-        <h3>👥 Connect</h3>
+        <i class="fas fa-users fa-3x"></i>
+        <h3>Connect</h3>
         <p>Join our community of writers and readers.</p>
     </div>
     <div class="feature-card">
-        <h3>🔒 Secure</h3>
+        <i class="fas fa-shield-alt fa-3x"></i>
+        <h3>Secure</h3>
         <p>Your data is protected with Django's secure authentication.</p>
     </div>
 </div>
 
 <div class="recent-posts">
-    <h2>Recent Posts</h2>
+    <h2><i class="fas fa-newspaper"></i> Recent Posts</h2>
     {% if recent_posts %}
         <div class="post-grid">
             {% for post in recent_posts %}
                 <article class="post-card">
-                    <h3><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h3>
-                    <p class="post-meta">By {{ post.author.username }} on {{ post.published_date|date:"F d, Y" }}</p>
-                    <p class="post-excerpt">{{ post.content|truncatechars:150 }}</p>
-                    <a href="{% url 'post_detail' post.id %}" class="read-more">Read More</a>
+                    <h3><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h3>
+                    <div class="post-meta">
+                        <span><i class="fas fa-user"></i> {{ post.author.username }}</span>
+                        <span><i class="fas fa-calendar"></i> {{ post.published_date|date:"F d, Y" }}</span>
+                    </div>
+                    <p class="post-excerpt">{{ post.content|truncatechars:200 }}</p>
+                    <a href="{% url 'post_detail' post.pk %}" class="read-more">
+                        <i class="fas fa-book-reader"></i> Read More
+                    </a>
                 </article>
             {% endfor %}
         </div>
+        <div class="view-all">
+            <a href="{% url 'post_list' %}" class="btn btn-primary">
+                <i class="fas fa-list"></i> View All Posts
+            </a>
+        </div>
     {% else %}
-        <p class="no-posts">No posts yet. Be the first to write one!</p>
+        <div class="no-posts">
+            <p><i class="fas fa-info-circle"></i> No posts yet. Be the first to write one!</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'post_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Your First Post
+                </a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Join and Start Writing
+                </a>
+            {% endif %}
+        </div>
     {% endif %}
 </div>
 {% endblock %}

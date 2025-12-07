@@ -1,81 +1,69 @@
 {% extends 'blog/base.html' %}
 
-{% block title %}Profile - Django Blog{% endblock %}
+{% block title %}Profile - {{ user.username }}{% endblock %}
 
 {% block content %}
 <div class="profile-container">
-    <h2>Your Profile</h2>
-    
-    <div class="profile-info">
-        <div class="profile-header">
-            <h3>{{ user.username }}</h3>
-            <p class="email">{{ user.email }}</p>
-            <p class="member-since">Member since: {{ user.date_joined|date:"F d, Y" }}</p>
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-user-circle fa-5x"></i>
         </div>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <h4>Posts Created</h4>
-                <p class="stat-number">{{ user.post_set.count }}</p>
-            </div>
-            <div class="stat-item">
-                <h4>Last Login</h4>
-                <p class="stat-number">{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
-            </div>
+        <div class="profile-info">
+            <h1>{{ user.username }}</h1>
+            <p class="email"><i class="fas fa-envelope"></i> {{ user.email }}</p>
+            <p class="member-since">
+                <i class="fas fa-calendar-plus"></i> 
+                Member since: {{ user.date_joined|date:"F d, Y" }}
+            </p>
         </div>
     </div>
     
-    <div class="profile-forms">
-        <h3>Update Profile</h3>
+    <div class="profile-stats">
+        <div class="stat-card">
+            <h3><i class="fas fa-newspaper"></i> Total Posts</h3>
+            <p class="stat-number">{{ user_posts.count }}</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fas fa-clock"></i> Last Login</h3>
+            <p class="stat-number">{{ user.last_login|date:"M d, Y"|default:"Never" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fas fa-user-edit"></i> Account Age</h3>
+            <p class="stat-number">{{ user.date_joined|timesince }}</p>
+        </div>
+    </div>
+    
+    <div class="user-posts">
+        <h2><i class="fas fa-file-alt"></i> Your Posts</h2>
         
-        <form method="POST" enctype="multipart/form-data" class="profile-form">
-            {% csrf_token %}
-            
-            <div class="form-section">
-                <h4>Account Information</h4>
-                {% for field in user_form %}
-                    <div class="form-group">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        
-                        {% if field.errors %}
-                            <div class="error-message">
-                                {% for error in field.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+        {% if user_posts %}
+            <div class="posts-list">
+                {% for post in user_posts %}
+                    <div class="user-post-item">
+                        <h3><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h3>
+                        <div class="post-meta">
+                            <span><i class="fas fa-calendar"></i> {{ post.published_date|date:"F d, Y" }}</span>
+                            <span class="actions">
+                                <a href="{% url 'post_update' post.pk %}" class="btn-edit-small">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'post_delete' post.pk %}" class="btn-delete-small">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </span>
+                        </div>
+                        <p class="post-excerpt">{{ post.content|truncatechars:150 }}</p>
                     </div>
                 {% endfor %}
             </div>
-            
-            <div class="form-section">
-                <h4>Profile Details</h4>
-                {% for field in profile_form %}
-                    <div class="form-group">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        
-                        {% if field.errors %}
-                            <div class="error-message">
-                                {% for error in field.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        {% if field.help_text %}
-                            <small class="help-text">{{ field.help_text }}</small>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+        {% else %}
+            <div class="no-posts">
+                <p><i class="fas fa-info-circle"></i> You haven't written any posts yet.</p>
+                <a href="{% url 'post_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Write Your First Post
+                </a>
             </div>
-            
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Update Profile</button>
-                <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

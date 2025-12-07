@@ -1,35 +1,83 @@
 {% extends 'blog/base.html' %}
 
-{% block title %}{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}{% endblock %}
+{% block title %}
+    {% if form.instance.pk %}
+        Edit Post: {{ form.instance.title }}
+    {% else %}
+        Create New Post
+    {% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="post-form-container">
-    <h1>{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}</h1>
+<div class="form-container">
+    <div class="form-header">
+        <h1>
+            {% if form.instance.pk %}
+                <i class="fas fa-edit"></i> Edit Post
+            {% else %}
+                <i class="fas fa-plus"></i> Create New Post
+            {% endif %}
+        </h1>
+        <p class="form-description">
+            {% if form.instance.pk %}
+                Update your blog post below.
+            {% else %}
+                Share your thoughts with the community.
+            {% endif %}
+        </p>
+    </div>
     
     <form method="POST" class="post-form">
         {% csrf_token %}
         
         <div class="form-group">
-            <label for="{{ form.title.id_for_label }}">Title:</label>
+            <label for="{{ form.title.id_for_label }}">
+                <i class="fas fa-heading"></i> Post Title
+            </label>
             {{ form.title }}
             {% if form.title.errors %}
-                <div class="error-message">{{ form.title.errors }}</div>
+                <div class="error-message">
+                    {% for error in form.title.errors %}
+                        <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
+                    {% endfor %}
+                </div>
             {% endif %}
+            <small class="help-text">Enter a descriptive title for your post.</small>
         </div>
         
         <div class="form-group">
-            <label for="{{ form.content.id_for_label }}">Content:</label>
+            <label for="{{ form.content.id_for_label }}">
+                <i class="fas fa-file-alt"></i> Content
+            </label>
             {{ form.content }}
             {% if form.content.errors %}
-                <div class="error-message">{{ form.content.errors }}</div>
+                <div class="error-message">
+                    {% for error in form.content.errors %}
+                        <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
+                    {% endfor %}
+                </div>
             {% endif %}
+            <small class="help-text">Write your blog post content here. You can use basic HTML formatting.</small>
         </div>
         
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
-                {% if form.instance.pk %}Update Post{% else %}Publish Post{% endif %}
+                {% if form.instance.pk %}
+                    <i class="fas fa-save"></i> Update Post
+                {% else %}
+                    <i class="fas fa-paper-plane"></i> Publish Post
+                {% endif %}
             </button>
-            <a href="{% url 'post_list' %}" class="btn btn-secondary">Cancel</a>
+            
+            {% if form.instance.pk %}
+                <a href="{% url 'post_detail' form.instance.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            {% else %}
+                <a href="{% url 'post_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            {% endif %}
         </div>
     </form>
 </div>
