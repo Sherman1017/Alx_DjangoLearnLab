@@ -11,11 +11,12 @@ urlpatterns = [
     # Home page
     path('', views.home, name='home'),
     
-    # Search functionality - exact URL pattern
+    # Search functionality - exact URL pattern as per requirements
     path('search/', views.search_results, name='search_results'),
     
-    # Tag functionality - exact URL pattern
-    path('tags/<slug:tag_slug>/', views.posts_by_tag, name='posts_by_tag'),
+    # Tag functionality - exact URL pattern as per requirements
+    # Using the pattern mentioned in instructions: /tags/<tag_name>/
+    path('tags/<str:tag_slug>/', views.posts_by_tag, name='posts_by_tag'),
     
     # Post URLs
     path('post/new/', views.post_create, name='post_create'),
@@ -23,7 +24,7 @@ urlpatterns = [
     path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
     path('post/<int:pk>/delete/', views.post_delete, name='post_delete'),
     
-    # Comment URLs
+    # Comment URLs (required by previous tasks)
     path('post/<int:pk>/comments/new/', 
          CommentCreateView.as_view(), 
          name='comment_create'),

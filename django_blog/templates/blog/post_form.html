@@ -59,16 +59,16 @@
                 </div>
             </div>
             
-            <!-- Tag Help Card -->
+            <!-- Technical Details Card -->
             <div class="card mt-3">
                 <div class="card-body">
-                    <h6 class="card-title">About Tags</h6>
+                    <h6 class="card-title">Technical Implementation</h6>
                     <ul class="mb-0">
-                        <li>Tags help organize and categorize your posts</li>
-                        <li>Users can search and filter posts by tags</li>
-                        <li>Separate multiple tags with commas</li>
-                        <li>Tags are case-insensitive and will be converted to lowercase</li>
-                        <li>Click on tags to see all posts with that tag</li>
+                        <li><strong>Tag Widget:</strong> Using TagWidget() from django-taggit</li>
+                        <li><strong>Form Field:</strong> TagField with TagWidget for tag input</li>
+                        <li><strong>Search:</strong> Uses Django Q objects for complex queries</li>
+                        <li><strong>URL Patterns:</strong> /search/ and /tags/&lt;tag_slug&gt;/</li>
+                        <li><strong>Validation:</strong> Automatic tag creation and normalization</li>
                     </ul>
                 </div>
             </div>

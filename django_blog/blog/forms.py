@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from taggit.forms import TagWidget, TagField
 from .models import Comment, Post
 
 class CommentForm(forms.ModelForm):
@@ -25,13 +26,14 @@ class CommentForm(forms.ModelForm):
         return content
 
 class PostForm(forms.ModelForm):
-    tags = forms.CharField(
+    # Using TagField with TagWidget from django-taggit
+    tags = TagField(
         required=False,
-        widget=forms.TextInput(attrs={
+        widget=TagWidget(attrs={
             'class': 'form-control',
-            'placeholder': 'django, python, web-development'
+            'placeholder': 'Enter tags separated by commas'
         }),
-        help_text='Enter tags separated by commas'
+        help_text='Separate tags with commas. New tags will be created automatically.'
     )
     
     class Meta:
@@ -55,24 +57,3 @@ class PostForm(forms.ModelForm):
             # Populate tags field with existing tags
             tags = self.instance.tags.names()
             self.initial['tags'] = ', '.join(tags)
-    
-    def clean_tags(self):
-        tags = self.cleaned_data.get('tags', '')
-        if tags:
-            # Split by commas and clean up
-            tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
-            return tag_list
-        return []
-    
-    def save(self, commit=True):
-        post = super().save(commit=False)
-        if commit:
-            post.save()
-            # Clear existing tags
-            post.tags.clear()
-            # Add new tags
-            tags = self.cleaned_data.get('tags', [])
-            for tag in tags:
-                post.tags.add(tag)
-            self.save_m2m()
-        return post

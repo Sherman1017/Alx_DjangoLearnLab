@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q  # Import Q objects for complex queries
 from taggit.models import Tag
 from .models import Post, Comment
 from .forms import CommentForm, PostForm
@@ -13,9 +13,10 @@ from .forms import CommentForm, PostForm
 def home(request):
     posts = Post.objects.all()
     
-    # Search functionality
+    # Search functionality using Q objects
     query = request.GET.get('q')
     if query:
+        # Using Django Q objects for complex query lookups
         posts = posts.filter(
             Q(title__icontains=query) |
             Q(content__icontains=query) |
@@ -37,7 +38,7 @@ def search_results(request):
     posts = Post.objects.all()
     
     if query:
-        # Using Django Q objects for complex search
+        # Using Django Q objects for complex search across multiple fields
         posts = posts.filter(
             Q(title__icontains=query) |
             Q(content__icontains=query) |
@@ -97,7 +98,7 @@ def post_create(request):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
-            form.save_m2m()  # Save tags
+            form.save_m2m()  # Save tags (many-to-many)
             messages.success(request, 'Post created successfully!')
             return redirect('post_detail', pk=post.pk)
     else:
