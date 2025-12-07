@@ -1,17 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import CreateView, UpdateView, DeleteView, ListView
+from django.views.generic import CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Q
-from .models import Post, Comment, Tag
+from taggit.models import Tag
+from .models import Post, Comment
 from .forms import CommentForm, PostForm
 
-# Home view with post list
+# Home view
 def home(request):
     posts = Post.objects.all()
-    tags = Tag.objects.all()
     
     # Search functionality
     query = request.GET.get('q')
@@ -22,10 +22,13 @@ def home(request):
             Q(tags__name__icontains=query)
         ).distinct()
     
+    # Get all tags for tag cloud
+    all_tags = Tag.objects.all()
+    
     return render(request, 'blog/home.html', {
         'posts': posts,
         'query': query,
-        'tags': tags,
+        'all_tags': all_tags,
     })
 
 # Search results view
@@ -34,31 +37,32 @@ def search_results(request):
     posts = Post.objects.all()
     
     if query:
+        # Using Django Q objects for complex search
         posts = posts.filter(
             Q(title__icontains=query) |
             Q(content__icontains=query) |
             Q(tags__name__icontains=query)
         ).distinct()
     
-    tags = Tag.objects.all()
+    all_tags = Tag.objects.all()
     
     return render(request, 'blog/search_results.html', {
         'posts': posts,
         'query': query,
-        'tags': tags,
+        'all_tags': all_tags,
         'results_count': posts.count(),
     })
 
-# View posts by tag
-def posts_by_tag(request, slug):
-    tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag)
-    tags = Tag.objects.all()
+# Posts by tag view
+def posts_by_tag(request, tag_slug):
+    tag = get_object_or_404(Tag, slug=tag_slug)
+    posts = Post.objects.filter(tags__name__in=[tag.name])
+    all_tags = Tag.objects.all()
     
     return render(request, 'blog/posts_by_tag.html', {
         'tag': tag,
         'posts': posts,
-        'tags': tags,
+        'all_tags': all_tags,
     })
 
 # Post detail view
@@ -116,9 +120,7 @@ def post_edit(request, pk):
             messages.success(request, 'Post updated successfully!')
             return redirect('post_detail', pk=post.pk)
     else:
-        # Initialize form with current tags as comma-separated string
-        initial_tags = ', '.join(tag.name for tag in post.tags.all())
-        form = PostForm(instance=post, initial={'tag_names': initial_tags})
+        form = PostForm(instance=post)
     
     return render(request, 'blog/post_form.html', {'form': form})
 
@@ -137,7 +139,7 @@ def post_delete(request, pk):
     
     return render(request, 'blog/post_confirm_delete.html', {'post': post})
 
-# Comment views (class-based as required by previous tasks)
+# Comment views
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm

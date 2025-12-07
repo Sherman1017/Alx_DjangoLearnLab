@@ -11,11 +11,11 @@ urlpatterns = [
     # Home page
     path('', views.home, name='home'),
     
-    # Search functionality
+    # Search functionality - exact URL pattern
     path('search/', views.search_results, name='search_results'),
     
-    # Tag functionality
-    path('tags/<slug:slug>/', views.posts_by_tag, name='posts_by_tag'),
+    # Tag functionality - exact URL pattern
+    path('tags/<slug:tag_slug>/', views.posts_by_tag, name='posts_by_tag'),
     
     # Post URLs
     path('post/new/', views.post_create, name='post_create'),
