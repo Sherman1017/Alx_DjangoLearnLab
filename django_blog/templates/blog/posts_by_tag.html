@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Posts tagged: {{ tag.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h1 class="mb-0">Posts tagged: </h1>
+    <span class="badge bg-primary ms-2 fs-5">{{ tag.name }}</span>
+</div>
+
+<!-- Tag Cloud -->
+{% if all_tags %}
+<div class="tag-cloud mb-4">
+    <h5>Browse other tags:</h5>
+    {% for t in all_tags %}
+        <a href="{% url 'posts_by_tag' tag_name=t.name %}" class="tag {% if t.name == tag.name %}bg-primary text-white{% endif %}">
+            {{ t.name }}
+        </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Posts with this tag -->
+{% if posts %}
+<div class="alert alert-info mb-4">
+    <p class="mb-0">{{ posts.count }} post{{ posts.count|pluralize }} found with tag "{{ tag.name }}"</p>
+</div>
+
+{% for post in posts %}
+<div class="post">
+    <h2>{{ post.title }}</h2>
+    <p class="text-muted">
+        By {{ post.author }} on {{ post.created_at|date:"F d, Y" }}
+    </p>
+    
+    <!-- Tags -->
+    {% if post.tags.all %}
+    <div class="mb-3">
+        <strong>Tags:</strong>
+        {% for t in post.tags.all %}
+            <a href="{% url 'posts_by_tag' tag_name=t.name %}" class="tag {% if t.name == tag.name %}bg-primary text-white{% endif %}">
+                {{ t.name }}
+            </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <p>{{ post.content|truncatewords:50 }}</p>
+    <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-primary">
+        Read More
+    </a>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="alert alert-warning">
+    <h4>No posts found!</h4>
+    <p>No posts are tagged with "{{ tag.name }}".</p>
+</div>
+{% endif %}
+
+<a href="{% url 'home' %}" class="btn btn-secondary">Back to All Posts</a>
+{% endblock %}

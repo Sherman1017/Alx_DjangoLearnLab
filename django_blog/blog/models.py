@@ -1,14 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
+from taggit.managers import TaggableManager
 
-# Post model (assuming it exists)
 class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    tags = TaggableManager(blank=True)  # Add tags field
     
     class Meta:
         ordering = ['-created_at']
@@ -16,7 +16,6 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
-# Comment Model as per instructions
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(User, on_delete=models.CASCADE)

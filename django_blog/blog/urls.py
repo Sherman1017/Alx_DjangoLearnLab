@@ -6,28 +6,37 @@ from .views import (
     CommentUpdateView, 
     CommentDeleteView,
     post_detail,
-    home
+    home,
+    post_create,
+    post_edit,
+    post_delete,
+    posts_by_tag,
+    search_results
 )
 
 urlpatterns = [
-    # Home page
+    # Home page with search
     path('', home, name='home'),
     
-    # Post detail
+    # Search results
+    path('search/', search_results, name='search_results'),
+    
+    # Post URLs
+    path('post/new/', post_create, name='post_create'),
     path('post/<int:pk>/', post_detail, name='post_detail'),
+    path('post/<int:pk>/edit/', post_edit, name='post_edit'),
+    path('post/<int:pk>/delete/', post_delete, name='post_delete'),
+    
+    # Tag URLs
+    path('tags/<str:tag_name>/', posts_by_tag, name='posts_by_tag'),
     
     # Comment URLs - EXACT PATTERNS REQUIRED BY CHECKER
-    # Note: Checker wants "post/<int:pk>/comments/new/" not "posts/<int:post_id>/comments/new/"
     path('post/<int:pk>/comments/new/', 
          CommentCreateView.as_view(), 
          name='comment_create'),
-    
-    # Checker wants "comment/<int:pk>/update/" not "comments/<int:pk>/edit/"
     path('comment/<int:pk>/update/', 
          CommentUpdateView.as_view(), 
          name='comment_update'),
-    
-    # Checker wants "comment/<int:pk>/delete/"
     path('comment/<int:pk>/delete/', 
          CommentDeleteView.as_view(), 
          name='comment_delete'),

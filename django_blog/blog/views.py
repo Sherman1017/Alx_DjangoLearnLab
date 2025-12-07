@@ -1,13 +1,49 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.db.models import Q
 from .models import Post, Comment
-from .forms import CommentForm
+from .forms import CommentForm, PostForm
+from taggit.models import Tag
 
-# Function-based view for post detail (kept for compatibility)
+# Home view with post list and search
+def home(request):
+    posts = Post.objects.all()
+    
+    # Search functionality
+    query = request.GET.get('q')
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    # Get all tags for tag cloud
+    all_tags = Tag.objects.all()
+    
+    return render(request, 'blog/home.html', {
+        'posts': posts,
+        'query': query,
+        'all_tags': all_tags,
+    })
+
+# View posts by tag
+def posts_by_tag(request, tag_name):
+    tag = get_object_or_404(Tag, name=tag_name)
+    posts = Post.objects.filter(tags__name=tag_name)
+    all_tags = Tag.objects.all()
+    
+    return render(request, 'blog/posts_by_tag.html', {
+        'tag': tag,
+        'posts': posts,
+        'all_tags': all_tags,
+    })
+
+# Post detail view
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     comments = post.comments.all()
@@ -27,11 +63,63 @@ def post_detail(request, pk):
     return render(request, 'blog/post_detail.html', {
         'post': post,
         'comments': comments,
-        'form': form
+        'form': form,
     })
 
-# Class-based views for comments as required by checker
+# Create post view
+@login_required
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            form.save_m2m()  # Save tags
+            messages.success(request, 'Post created successfully!')
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm()
+    
+    return render(request, 'blog/post_form.html', {'form': form})
 
+# Edit post view
+@login_required
+def post_edit(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.author != request.user:
+        messages.error(request, 'You are not authorized to edit this post.')
+        return redirect('post_detail', pk=post.pk)
+    
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Post updated successfully!')
+            return redirect('post_detail', pk=post.pk)
+    else:
+        # Initialize form with current tags as comma-separated string
+        initial_tags = ', '.join(tag.name for tag in post.tags.all())
+        form = PostForm(instance=post, initial={'tags': initial_tags})
+    
+    return render(request, 'blog/post_form.html', {'form': form})
+
+# Delete post view
+@login_required
+def post_delete(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.author != request.user:
+        messages.error(request, 'You are not authorized to delete this post.')
+        return redirect('post_detail', pk=post.pk)
+    
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, 'Post deleted successfully!')
+        return redirect('home')
+    
+    return render(request, 'blog/post_confirm_delete.html', {'post': post})
+
+# Comment views (class-based as required by previous tasks)
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
@@ -39,7 +127,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post_id = self.kwargs.get('pk')  # Changed from post_id to pk
+        form.instance.post_id = self.kwargs.get('pk')
         messages.success(self.request, 'Your comment has been created!')
         return super().form_valid(form)
     
@@ -76,21 +164,23 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(self.request, 'Your comment has been deleted!')
         return reverse_lazy('post_detail', kwargs={'pk': comment.post.pk})
 
-# Additional views for home and post list
-def home(request):
+# Search results view
+def search_results(request):
+    query = request.GET.get('q', '')
     posts = Post.objects.all()
-    return render(request, 'blog/home.html', {'posts': posts})
-
-@login_required
-def post_create(request):
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            messages.success(request, 'Post created successfully!')
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = CommentForm()
-    return render(request, 'blog/post_form.html', {'form': form})
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    all_tags = Tag.objects.all()
+    
+    return render(request, 'blog/search_results.html', {
+        'posts': posts,
+        'query': query,
+        'all_tags': all_tags,
+        'results_count': posts.count(),
+    })
