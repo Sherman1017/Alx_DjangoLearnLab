@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
 from .models import Post
 from .forms import UserRegisterForm, PostForm
 
@@ -52,20 +51,23 @@ def home(request):
     recent_posts = Post.objects.all()[:3]
     return render(request, 'blog/home.html', {'recent_posts': recent_posts})
 
+@login_required
+def profile(request):
+    user_posts = Post.objects.filter(author=request.user).order_by('-published_date')
+    return render(request, 'blog/profile.html', {'user_posts': user_posts})
+
 # Blog Post CRUD Views
+
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
+    ordering = ['-published_date']
     paginate_by = 5
-    
-    def get_queryset(self):
-        return Post.objects.all().order_by('-published_date')
 
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
-    context_object_name = 'post'
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -106,9 +108,3 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
-
-# Profile View
-@login_required
-def profile(request):
-    user_posts = Post.objects.filter(author=request.user).order_by('-published_date')
-    return render(request, 'blog/profile.html', {'user_posts': user_posts})
