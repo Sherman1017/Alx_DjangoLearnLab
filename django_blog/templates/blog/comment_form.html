@@ -13,8 +13,10 @@
                     <h4 class="mb-0">
                         {% if object %}
                             Edit Comment
+                            <small class="text-muted">(URL: /comment/{{ object.id }}/update/)</small>
                         {% else %}
                             Add New Comment
+                            <small class="text-muted">(URL: /post/{{ view.kwargs.pk }}/comments/new/)</small>
                         {% endif %}
                     </h4>
                 </div>
@@ -41,7 +43,7 @@
                             <button type="submit" class="btn btn-primary">
                                 {% if object %}Update{% else %}Submit{% endif %}
                             </button>
-                            <a href="{% if object %}{% url 'post_detail' object.post.pk %}{% else %}{% url 'home' %}{% endif %}" 
+                            <a href="{% if object %}{% url 'post_detail' object.post.pk %}{% else %}{% url 'post_detail' view.kwargs.pk %}{% endif %}" 
                                class="btn btn-secondary">
                                 Cancel
                             </a>
