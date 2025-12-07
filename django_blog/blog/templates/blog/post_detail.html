@@ -1,6 +1,106 @@
-<h1>{{ post.title }}</h1>
-<p>{{ post.content }}</p>
-<p>By {{ post.author }} on {{ post.published_date }}</p>
-<a href="{% url 'post_update' post.pk %}">Edit</a>
-<a href="{% url 'post_delete' post.pk %}">Delete</a>
-<a href="{% url 'post_list' %}">Back to list</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">Django Blog</a>
+            <div class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <span class="nav-item nav-link">Welcome, {{ user.username }}</span>
+                    <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                    <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Blog Post -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="card-title">{{ post.title }}</h1>
+                <p class="text-muted">
+                    Posted by {{ post.author.username }} on {{ post.created_at|date:"F d, Y" }}
+                </p>
+                <div class="post-content">
+                    {{ post.content|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h3>Comments ({{ comments.count }})</h3>
+            
+            <!-- Comment Form -->
+            {% if user.is_authenticated %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Add a Comment</h5>
+                    <form method="post" action="{% url 'add_comment' post.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger">{{ form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Comment</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <a href="{% url 'login' %}">Log in</a> to post a comment.
+            </div>
+            {% endif %}
+
+            <!-- Comments List -->
+            <div class="comments-list">
+                {% for comment in comments %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {{ comment.author.username }}
+                            </h6>
+                            <small class="text-muted">
+                                {{ comment.created_at|date:"F d, Y" }}
+                                {% if comment.updated_at != comment.created_at %}
+                                    (edited)
+                                {% endif %}
+                            </small>
+                        </div>
+                        <p class="card-text">{{ comment.content|linebreaks }}</p>
+                        
+                        {% if user.is_authenticated and user == comment.author %}
+                        <div class="comment-actions">
+                            <a href="{% url 'edit_comment' comment.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="{% url 'delete_comment' comment.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    No comments yet. Be the first to comment!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <a href="/" class="btn btn-secondary mt-3">Back to Posts</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
