@@ -1,56 +1,36 @@
 {% extends 'blog/base.html' %}
 
-{% block title %}Login - Django Blog{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <h1><i class="fas fa-sign-in-alt"></i> Login</h1>
-        <p>Welcome back! Please login to continue</p>
-    </div>
+<h1>Login</h1>
+
+<form method="POST">
+    {% csrf_token %}
     
-    <form method="POST" class="auth-form">
-        {% csrf_token %}
-        
-        {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">
-                    <i class="fas fa-{% if field.name == 'username' %}user{% else %}lock{% endif %}"></i>
-                    {{ field.label }}
-                </label>
-                {{ field }}
-                
-                {% if field.errors %}
-                    <div class="error-message">
-                        {% for error in field.errors %}
-                            <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
-        
-        {% if form.non_field_errors %}
-            <div class="error-message">
-                {% for error in form.non_field_errors %}
-                    <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-        
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-            <a href="{% url 'home' %}" class="btn btn-secondary">
-                <i class="fas fa-home"></i> Home
-            </a>
+    {% for field in form %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+                <div class="errors">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
         </div>
-    </form>
+    {% endfor %}
     
-    <div class="auth-links">
-        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
-        <p><a href="{% url 'home' %}">Back to Home</a></p>
+    {% if form.non_field_errors %}
+        <div class="errors">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+    
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Login</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
     </div>
-</div>
+</form>
+
+<p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
 {% endblock %}

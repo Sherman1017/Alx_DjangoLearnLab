@@ -1,51 +1,33 @@
 {% extends 'blog/base.html' %}
 
-{% block title %}Register - Django Blog{% endblock %}
+{% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <h1><i class="fas fa-user-plus"></i> Create Account</h1>
-        <p>Join our community of writers and readers</p>
-    </div>
+<h1>Register</h1>
+
+<form method="POST">
+    {% csrf_token %}
     
-    <form method="POST" class="auth-form">
-        {% csrf_token %}
-        
-        {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">
-                    <i class="fas fa-{% if field.name == 'username' %}user{% elif field.name == 'email' %}envelope{% elif 'password' in field.name %}lock{% endif %}"></i>
-                    {{ field.label }}
-                </label>
-                {{ field }}
-                
-                {% if field.errors %}
-                    <div class="error-message">
-                        {% for error in field.errors %}
-                            <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                
-                {% if field.help_text %}
-                    <small class="help-text">{{ field.help_text }}</small>
-                {% endif %}
-            </div>
-        {% endfor %}
-        
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-user-plus"></i> Register
-            </button>
-            <a href="{% url 'home' %}" class="btn btn-secondary">
-                <i class="fas fa-home"></i> Home
-            </a>
+    {% for field in form %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+                <div class="errors">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+            {% if field.help_text %}
+                <small>{{ field.help_text }}</small>
+            {% endif %}
         </div>
-    </form>
+    {% endfor %}
     
-    <div class="auth-links">
-        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Register</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
     </div>
-</div>
+</form>
+
+<p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
 {% endblock %}
