@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, filters, status
+from rest_framework import viewsets, permissions, filters, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,6 +10,9 @@ from .serializers import (
     CommentSerializer,
     CommentCreateSerializer
 )
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     """
@@ -77,41 +80,18 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+# ===== FEED VIEW =====
 class FeedView(generics.ListAPIView):
     """
-    View to get feed of posts from followed users
-    Returns posts from users that the current user follows
+    View to generate feed based on posts from users the current user follows
+    Returns posts ordered by creation date, most recent first
     """
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = None  # Or use default pagination
     
     def get_queryset(self):
         # Get users that the current user follows
         following_users = self.request.user.following.all()
         
         # Get posts from followed users, ordered by creation date (newest first)
-        queryset = Post.objects.filter(author__in=following_users).order_by('-created_at')
-        
-        # Optional: Include user's own posts in feed
-        # queryset = queryset | Post.objects.filter(author=self.request.user)
-        
-        return queryset
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        
-        # Check if user is following anyone
-        if not request.user.following.exists():
-            return Response({
-                "message": "You are not following anyone yet. Follow some users to see their posts here!",
-                "suggestions": User.objects.exclude(id=request.user.id).order_by('?')[:5].values('id', 'username', 'first_name', 'last_name')
-            }, status=status.HTTP_200_OK)
-        
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Post.objects.filter(author__in=following_users).order_by('-created_at')
