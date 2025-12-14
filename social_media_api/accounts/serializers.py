@@ -1,29 +1,26 @@
-from rest_framework import serializers
-from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
-from rest_framework.authtoken.models import Token  # CHECKER WANTS THIS
-from .models import CustomUser
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
+
+User = get_user_model()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
     
     class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password', 'password2', 'bio']
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'password2', 'bio']
     
     def validate(self, data):
         if data['password'] != data['password2']:
-            raise serializers.ValidationError("Passwords must match")
+            raise serializers.ValidationError({"password": "Passwords must match."})
         return data
     
     def create(self, validated_data):
         validated_data.pop('password2')
-        # CHECKER WANTS: get_user_model().objects.create_user
-        User = get_user_model()
-        user = User.objects.create_user(**validated_data)  # CHECKER WANTS THIS
-        # CHECKER WANTS: Token.objects.create
-        Token.objects.create(user=user)  # CHECKER WANTS THIS
+        user = User.objects.create_user(**validated_data)
+        Token.objects.create(user=user)
         return user
 
 class UserLoginSerializer(serializers.Serializer):
@@ -41,5 +38,5 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'profile_picture']
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'bio', 'profile_picture', 'date_joined']
