@@ -1,0 +1,32 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<h1>Profile</h1>
+
+<p><strong>Username:</strong> {{ user.username }}</p>
+<p><strong>Email:</strong> {{ user.email }}</p>
+<p><strong>Member since:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+
+<hr>
+
+<h2>Your Posts</h2>
+
+{% if user_posts %}
+    {% for post in user_posts %}
+        <div class="post">
+            <h3><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h3>
+            <p class="meta">Published on {{ post.published_date|date:"F d, Y" }}</p>
+            <p>{{ post.content|truncatechars:100 }}</p>
+            <div class="actions">
+                <a href="{% url 'post_update' post.pk %}" class="btn btn-edit">Edit</a>
+                <a href="{% url 'post_delete' post.pk %}" class="btn btn-delete">Delete</a>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>You haven't written any posts yet.</p>
+    <a href="{% url 'post_create' %}" class="btn btn-primary">Write Your First Post</a>
+{% endif %}
+{% endblock %}
