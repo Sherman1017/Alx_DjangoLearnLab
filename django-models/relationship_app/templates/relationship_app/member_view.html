@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Member Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .auth-links { margin: 20px 0; padding: 10px; background: #f8f9fa; }
+        .auth-links a { margin-right: 15px; color: #007bff; text-decoration: none; }
+        .dashboard { background: #fff3cd; padding: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="auth-links">
+        Welcome, {{ user.username }} (Member)!
+        <a href="{% url 'relationship_app:logout' %}">Logout</a>
+        <a href="{% url 'relationship_app:book_list' %}">View Books</a>
+        <a href="{% url 'relationship_app:library_list' %}">View Libraries</a>
+    </div>
+    
+    <div class="dashboard">
+        <h1>Member Dashboard</h1>
+        <p>Welcome to the Member area! You can browse and borrow books.</p>
+        
+        <h2>Member Features:</h2>
+        <ul>
+            <li>Browse book catalog</li>
+            <li>Check out books</li>
+            <li>View borrowing history</li>
+            <li>Search for books</li>
+        </ul>
+        
+        <p>As a member, you have access to basic library services.</p>
+    </div>
+</body>
+</html>

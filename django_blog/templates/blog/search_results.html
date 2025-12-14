@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <form action="/search/" method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search...">
+        <button type="submit">Search</button>
+    </form>
+    {% if query %}
+        <h2>Results for "{{ query }}":</h2>
+        {% for post in posts %}
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.content|truncatewords:20 }}</p>
+        {% empty %}
+            <p>No results found.</p>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

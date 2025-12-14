@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Post{% else %}Create Post{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            {{ form.title.label_tag }}
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.content.label_tag }}
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.content.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.tags.label_tag }}
+                            {{ form.tags }}
+                            <div class="form-text">{{ form.tags.help_text }}</div>
+                            {% if form.tags.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.tags.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Example: django, python, web-development</small>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Post
+                            </button>
+                            <a href="{% if form.instance.pk %}{% url 'post_detail' form.instance.pk %}{% else %}{% url 'home' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Technical Details Card -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">Technical Implementation</h6>
+                    <ul class="mb-0">
+                        <li><strong>Tag Widget:</strong> Using TagWidget() from django-taggit</li>
+                        <li><strong>Form Field:</strong> TagField with TagWidget for tag input</li>
+                        <li><strong>Search:</strong> Uses Django Q objects for complex queries</li>
+                        <li><strong>URL Patterns:</strong> /search/ and /tags/&lt;tag_slug&gt;/</li>
+                        <li><strong>Validation:</strong> Automatic tag creation and normalization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
