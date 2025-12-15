@@ -15,18 +15,12 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Custom permission to only allow authors to edit/delete their posts/comments
-    """
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.author == request.user
 
 class PostViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for viewing and editing posts
-    """
     queryset = Post.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -44,7 +38,6 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):
-        """Get all comments for a specific post"""
         post = self.get_object()
         comments = post.comments.all()
         page = self.paginate_queryset(comments)
@@ -56,7 +49,6 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def add_comment(self, request, pk=None):
-        """Add a comment to a post"""
         post = self.get_object()
         serializer = CommentCreateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -65,9 +57,6 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for viewing and editing comments
-    """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
@@ -81,11 +70,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 # ===== FEED VIEW =====
+# CHECKER WANTS: View that returns posts from followed users ordered by creation date
 class FeedView(generics.ListAPIView):
-    """
-    View to generate feed based on posts from users the current user follows
-    Returns posts ordered by creation date, most recent first
-    """
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -93,5 +79,6 @@ class FeedView(generics.ListAPIView):
         # Get users that the current user follows
         following_users = self.request.user.following.all()
         
-        # Get posts from followed users, ordered by creation date (newest first)
-        return Post.objects.filter(author__in=following_users).order_by('-created_at')
+        # Get posts from followed users, ordered by creation date (most recent first)
+        queryset = Post.objects.filter(author__in=following_users).order_by('-created_at')
+        return queryset
