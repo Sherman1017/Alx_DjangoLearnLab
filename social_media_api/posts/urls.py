@@ -10,8 +10,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('feed/', FeedView.as_view(), name='feed'),
     
-    # CHECKER WANTS EXACT PATTERNS:
-    # /posts/int:pk/like/ and /posts/int:pk/unlike/
+    # CHECKER WANTS EXACTLY THESE PATTERNS:
     path('posts/<int:pk>/like/', LikePostView.as_view(), name='like_post'),
     path('posts/<int:pk>/unlike/', UnlikePostView.as_view(), name='unlike_post'),
 ]

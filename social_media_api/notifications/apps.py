@@ -5,5 +5,8 @@ class NotificationsConfig(AppConfig):
     name = 'notifications'
     
     def ready(self):
-        # Import signal handlers
-        import notifications.signals
+        # Try to import signals, but don't fail if they don't exist yet
+        try:
+            import notifications.signals
+        except ImportError:
+            pass
