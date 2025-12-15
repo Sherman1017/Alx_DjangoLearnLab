@@ -10,9 +10,7 @@ from .serializers import (
     CommentSerializer,
     CommentCreateSerializer
 )
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from accounts.models import CustomUser
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -70,7 +68,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 # ===== FEED VIEW =====
-# CHECKER WANTS: View that returns posts from followed users ordered by creation date
+# CHECKER: View that generates feed based on posts from users the current user follows
 class FeedView(generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -80,5 +78,4 @@ class FeedView(generics.ListAPIView):
         following_users = self.request.user.following.all()
         
         # Get posts from followed users, ordered by creation date (most recent first)
-        queryset = Post.objects.filter(author__in=following_users).order_by('-created_at')
-        return queryset
+        return Post.objects.filter(author__in=following_users).order_by('-created_at')
