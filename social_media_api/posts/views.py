@@ -79,3 +79,70 @@ class FeedView(generics.ListAPIView):
         
         # Get posts from followed users, ordered by creation date (most recent first)
         return Post.objects.filter(author__in=following_users).order_by('-created_at')
+
+# ===== LIKE FUNCTIONALITY =====
+from .models import Like
+from notifications.models import Notification
+
+class LikePostView(generics.GenericAPIView):
+    """
+    View to like a post
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        
+        # Check if already liked
+        if Like.objects.filter(user=request.user, post=post).exists():
+            return Response(
+                {"error": "You have already liked this post."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create like
+        like = Like.objects.create(user=request.user, post=post)
+        
+        # Create notification for post author (if not liking own post)
+        if post.author != request.user:
+            Notification.create_notification(
+                recipient=post.author,
+                actor=request.user,
+                verb="liked your post",
+                target=post
+            )
+        
+        return Response({
+            "message": "Post liked successfully",
+            "likes_count": post.likes.count(),
+            "like_id": like.id
+        }, status=status.HTTP_201_CREATED)
+
+class UnlikePostView(generics.GenericAPIView):
+    """
+    View to unlike a post
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        
+        # Check if liked
+        like = Like.objects.filter(user=request.user, post=post).first()
+        if not like:
+            return Response(
+                {"error": "You have not liked this post."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Delete like
+        like.delete()
+        
+        return Response({
+            "message": "Post unliked successfully",
+            "likes_count": post.likes.count()
+        }, status=status.HTTP_200_OK)
+
+# Add like/unlike actions to PostViewSet
+PostViewSet.like = LikePostView.as_view()
+PostViewSet.unlike = UnlikePostView.as_view()
